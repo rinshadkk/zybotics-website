@@ -1,0 +1,2461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agents Collective.ai — The OS for Agent Orchestration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080b14;
+      --bg2: #0d1220;
+      --bg3: #111827;
+      --accent: #6366f1;
+      --accent2: #8b5cf6;
+      --accent3: #06b6d4;
+      --accent4: #10b981;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --border: rgba(99,102,241,0.18);
+      --glass: rgba(15,20,40,0.7);
+      --glow: rgba(99,102,241,0.35);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── CANVAS NETWORK ── */
+    #network-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 5%;
+      backdrop-filter: blur(20px);
+      background: rgba(8,11,20,0.8);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      box-shadow: 0 0 18px var(--glow);
+    }
+
+    .nav-links { display: flex; align-items: center; gap: 2rem; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 0 20px rgba(99,102,241,0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 32px rgba(99,102,241,0.6);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ── SECTIONS ── */
+    section { position: relative; z-index: 1; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem 5% 6rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 1rem;
+      border-radius: 999px;
+      border: 1px solid rgba(99,102,241,0.4);
+      background: rgba(99,102,241,0.1);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #a5b4fc;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .pulse-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent4);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.4); }
+    }
+
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      animation: fadeDown 0.6s 0.1s ease both;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #818cf8, #c084fc, #22d3ee);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      max-width: 620px;
+      font-size: 1.125rem;
+      color: var(--muted);
+      margin-bottom: 3rem;
+      line-height: 1.75;
+      animation: fadeDown 0.6s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      animation: fadeDown 0.6s 0.3s ease both;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .signup-form {
+      display: flex;
+      width: 100%;
+      gap: 0.5rem;
+      background: rgba(15,20,40,0.8);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.5rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 40px rgba(99,102,241,0.15);
+    }
+
+    .signup-form input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.9rem;
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    .signup-form input::placeholder { color: var(--muted); }
+
+    .hero-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    .hero-stats {
+      display: flex;
+      align-items: center;
+      gap: 3rem;
+      margin-top: 5rem;
+      animation: fadeUp 0.8s 0.5s ease both;
+    }
+
+    .stat { text-align: center; }
+    .stat-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+    .stat-divider { width: 1px; height: 40px; background: var(--border); }
+
+    /* ── SCROLL HINT ── */
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 0.4;
+      animation: bounce 2s infinite;
+    }
+    .scroll-hint span { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+    @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(6px); } }
+
+    /* ── KERNEL SECTION ── */
+    .kernel-section {
+      padding: 7rem 5%;
+      background: linear-gradient(180deg, transparent, rgba(99,102,241,0.04) 50%, transparent);
+    }
+
+    .kernel-grid {
+      max-width: 920px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .kernel-header-row {
+      display: grid;
+      grid-template-columns: 1fr 48px 1fr;
+      gap: 0;
+      padding: 0 1.5rem 0.5rem;
+    }
+
+    .kernel-col-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .kernel-col-arrow { /* spacer */ }
+
+    .kernel-row {
+      display: grid;
+      grid-template-columns: 1fr 48px 1fr;
+      gap: 0;
+      align-items: stretch;
+    }
+
+    .kernel-cell {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      transition: all 0.25s;
+    }
+
+    .kernel-cell:hover { transform: translateY(-1px); }
+
+    .kernel-os {
+      background: rgba(255,255,255,0.025);
+      border-color: rgba(255,255,255,0.06);
+    }
+    .kernel-os:hover { border-color: rgba(255,255,255,0.12); }
+
+    .kernel-ac {
+      background: rgba(99,102,241,0.07);
+      border-color: rgba(99,102,241,0.2);
+    }
+    .kernel-ac:hover { border-color: rgba(99,102,241,0.45); box-shadow: 0 4px 20px rgba(99,102,241,0.12); }
+
+    .kernel-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .kernel-name {
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .kernel-desc {
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .kernel-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: var(--accent);
+      opacity: 0.5;
+      font-weight: 700;
+    }
+
+    @media (max-width: 680px) {
+      .kernel-row { grid-template-columns: 1fr; }
+      .kernel-arrow { display: none; }
+      .kernel-header-row { display: none; }
+    }
+
+    /* ── ARCHITECTURE ── */
+    .arch-section {
+      padding: 7rem 5%;
+      background: linear-gradient(180deg, transparent 0%, rgba(99,102,241,0.04) 50%, transparent 100%);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .section-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .section-header h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.75rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .section-header p {
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto;
+      font-size: 1rem;
+    }
+
+    /* ── ARCH DIAGRAM ── */
+    .arch-diagram {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .arch-svg-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 0 60px rgba(99,102,241,0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    /* ── FEATURES ── */
+    .features-section { padding: 7rem 5%; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(99,102,241,0.06), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover { border-color: rgba(99,102,241,0.4); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 20px rgba(99,102,241,0.1); }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .feature-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+    }
+
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .feature-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 1rem;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── AGENTS ── */
+    .agents-section {
+      padding: 7rem 5%;
+      background: linear-gradient(180deg, transparent, rgba(6,182,212,0.04), transparent);
+    }
+
+    .agents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .agent-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      transition: all 0.3s;
+      cursor: default;
+    }
+
+    .agent-card:hover {
+      border-color: rgba(6,182,212,0.4);
+      box-shadow: 0 8px 30px rgba(6,182,212,0.1);
+      transform: translateY(-2px);
+    }
+
+    .agent-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .agent-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .agent-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .agent-status {
+      margin-left: auto;
+      font-size: 0.65rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .agent-desc {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .agent-caps {
+      margin-top: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .cap-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .cap-item::before {
+      content: '›';
+      color: var(--accent3);
+      font-weight: 700;
+    }
+
+    /* ── SECURITY ── */
+    .security-section { padding: 7rem 5%; }
+
+    .security-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      align-items: center;
+    }
+
+    .security-content h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.25rem;
+    }
+
+    .security-content p {
+      color: var(--muted);
+      margin-bottom: 2rem;
+      line-height: 1.75;
+    }
+
+    .security-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .security-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      padding: 0.85rem 1rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color 0.2s;
+    }
+
+    .security-item:hover { border-color: rgba(239,68,68,0.4); }
+
+    .security-item-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .security-item-text h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+    }
+
+    .security-item-text p {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* security layers visual */
+    .security-layers {
+      position: relative;
+    }
+
+    .layers-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 2rem;
+      box-shadow: 0 0 50px rgba(239,68,68,0.08);
+    }
+
+    .layer-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.7rem 0.9rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      font-size: 0.82rem;
+      font-family: 'JetBrains Mono', monospace;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .layer-row:hover { background: rgba(255,255,255,0.03); }
+
+    .layer-num {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .layer-name { flex: 1; }
+    .layer-badge {
+      font-size: 0.65rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    /* ── DASHBOARD ── */
+    .dashboard-section {
+      padding: 7rem 5%;
+      background: linear-gradient(180deg, transparent, rgba(99,102,241,0.04), transparent);
+    }
+
+    .dashboard-preview {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .dashboard-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+
+    .dash-tab {
+      padding: 0.6rem 1.1rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      border: 1px solid transparent;
+      border-bottom: none;
+      transition: all 0.2s;
+      margin-bottom: -1px;
+      background: transparent;
+      font-family: inherit;
+    }
+
+    .dash-tab.active {
+      color: var(--text);
+      background: var(--bg2);
+      border-color: var(--border);
+    }
+
+    .dash-screen {
+      display: none;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 0 16px 16px 16px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 40px rgba(99,102,241,0.08);
+    }
+
+    .dash-screen.active { display: block; }
+
+    .dash-topbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    .dash-body { display: flex; height: 480px; }
+
+    .dash-sidebar {
+      width: 200px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .dash-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.55rem 1rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .dash-nav-item.active {
+      color: var(--text);
+      background: rgba(99,102,241,0.12);
+      border-right: 2px solid var(--accent);
+    }
+
+    .dash-nav-item:hover:not(.active) { background: rgba(255,255,255,0.03); color: var(--text); }
+
+    .dash-main { flex: 1; overflow: hidden; padding: 1.5rem; }
+
+    /* dashboard content screens */
+    .screen-agents { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .agent-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg3);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .agent-row-icon { font-size: 1.1rem; }
+    .agent-row-name { font-size: 0.82rem; font-weight: 500; flex: 1; }
+    .agent-row-id { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; color: var(--muted); }
+
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      box-shadow: 0 0 6px currentColor;
+    }
+
+    .screen-workflow { display: flex; gap: 1rem; height: 100%; }
+
+    .wf-list { width: 38%; display: flex; flex-direction: column; gap: 0.5rem; overflow: hidden; }
+
+    .wf-item {
+      padding: 0.75rem;
+      background: var(--bg3);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.04);
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .wf-item.selected { border-color: var(--accent); }
+
+    .wf-item-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0.3rem;
+    }
+
+    .wf-item-name { font-size: 0.78rem; font-weight: 500; }
+    .wf-item-steps { font-size: 0.65rem; color: var(--muted); }
+
+    .wf-detail { flex: 1; display: flex; flex-direction: column; gap: 0.6rem; overflow: hidden; }
+
+    .wf-step {
+      background: var(--bg3);
+      border-radius: 8px;
+      border-left: 3px solid transparent;
+      font-size: 0.78rem;
+      overflow: hidden;
+    }
+
+    .wf-step-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+    }
+
+    .wf-step-num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .wf-step-name { flex: 1; }
+    .wf-step-agent { font-size: 0.65rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+    .wf-step-accordions {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .wf-accordion {
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .wf-accordion:last-child { border-bottom: none; }
+
+    .wf-accordion-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.85rem;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color 0.15s;
+    }
+    .wf-accordion-toggle:hover { color: var(--text); }
+
+    .wf-accordion-caret {
+      font-size: 0.55rem;
+      transition: transform 0.2s;
+      opacity: 0.6;
+    }
+    .wf-accordion.open .wf-accordion-caret { transform: rotate(90deg); }
+
+    .wf-accordion-body {
+      display: none;
+      padding: 0 0.85rem 0.5rem;
+    }
+    .wf-accordion.open .wf-accordion-body { display: block; }
+
+    .wf-io-block {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.67rem;
+      color: var(--muted);
+      background: rgba(0,0,0,0.25);
+      border-radius: 6px;
+      padding: 0.55rem 0.7rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .screen-llm { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .llm-stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+
+    .llm-stat-box {
+      background: var(--bg3);
+      border-radius: 10px;
+      padding: 0.85rem;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .llm-stat-box .num { font-size: 1.3rem; font-weight: 700; font-family: 'Space Grotesk'; }
+    .llm-stat-box .lbl { font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
+
+    .llm-table { width: 100%; border-collapse: collapse; }
+    .llm-table th {
+      text-align: left;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .llm-table td {
+      padding: 0.55rem 0.75rem;
+      font-size: 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .llm-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .screen-cortex { display: flex; gap: 1rem; height: 100%; }
+
+    .cortex-agents { width: 35%; display: flex; flex-direction: column; gap: 0.4rem; }
+
+    .cortex-agent-item {
+      padding: 0.65rem 0.85rem;
+      background: var(--bg3);
+      border-radius: 8px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .cortex-agent-item.selected { border-color: var(--accent2); color: var(--text); }
+    .cortex-agent-item:not(.selected) { color: var(--muted); }
+
+    .cortex-memory { flex: 1; display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .cortex-category {
+      background: var(--bg3);
+      border-radius: 8px;
+      padding: 0.75rem;
+    }
+
+    .cortex-cat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .cortex-cat-name { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+    .cortex-cat-count { font-size: 0.65rem; color: var(--muted); }
+
+    .cortex-entry { font-size: 0.73rem; color: var(--muted); padding: 0.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+    /* ── WORKFLOW VISUAL ── */
+    .workflow-section {
+      padding: 7rem 5%;
+    }
+
+    .workflow-visual {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      padding: 3rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 0 60px rgba(99,102,241,0.08);
+      overflow-x: auto;
+    }
+
+    .wf-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .wf-node-box {
+      width: 90px;
+      height: 70px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      border: 1px solid transparent;
+      font-size: 1.3rem;
+      transition: all 0.3s;
+    }
+
+    .wf-node-box:hover { transform: scale(1.05); }
+
+    .wf-node-label {
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .wf-arrow {
+      display: flex;
+      align-items: center;
+      color: var(--muted);
+      opacity: 0.5;
+      font-size: 1.2rem;
+      margin: 0 0.5rem;
+      flex-shrink: 0;
+    }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      padding: 7rem 5%;
+      text-align: center;
+    }
+
+    .cta-card {
+      max-width: 720px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 24px;
+      padding: 4rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.5), transparent, rgba(139,92,246,0.3));
+      z-index: -1;
+    }
+
+    .cta-card h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .cta-card p {
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+      font-size: 1rem;
+    }
+
+    .cta-signup {
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    .cta-signup .signup-form {
+      background: rgba(8,11,20,0.8);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 3rem 5%;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-left { display: flex; align-items: center; gap: 1rem; }
+    .footer-copy { font-size: 0.78rem; color: var(--muted); }
+
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { font-size: 0.78rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+
+    .github-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .github-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-in-up.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(6,182,212,0.1));
+      border: 1px solid rgba(16,185,129,0.4);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      font-size: 0.875rem;
+      color: #6ee7b7;
+      backdrop-filter: blur(10px);
+      z-index: 200;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .security-grid { grid-template-columns: 1fr; }
+      .hero-stats { gap: 1.5rem; }
+      .stat-num { font-size: 1.5rem; }
+      .nav-links { display: none; }
+      .llm-stats-row { grid-template-columns: repeat(2, 1fr); }
+      .dash-sidebar { width: 160px; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Network animation canvas -->
+<canvas id="network-canvas"></canvas>
+
+<!-- ── NAV ── -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="logo-icon">⬡</div>
+    <span>Agents <span style="color:var(--accent)">Collective</span>.ai</span>
+  </a>
+  <span style="font-size:0.65rem;font-family:'JetBrains Mono',monospace;color:rgba(99,102,241,0.6);border:1px solid rgba(99,102,241,0.25);padding:0.2rem 0.55rem;border-radius:999px;letter-spacing:0.06em;">The OS for Agent Orchestration</span>
+  <div class="nav-links">
+    <a href="#features">OS Capabilities</a>
+    <a href="#agents">Agents</a>
+    <a href="#security">Security</a>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#architecture">Architecture</a>
+  </div>
+  <a href="https://github.com" class="github-btn">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+    Star on GitHub
+  </a>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="pulse-dot"></span>
+    Open Source · Coming Soon
+  </div>
+
+  <h1>
+    The OS for<br/>
+    <span class="gradient-text">Agent Orchestration</span>
+  </h1>
+
+  <p class="hero-sub">
+    Agents Collective is the operating system your AI agents run on — a kernel that manages agent processes, inter-agent messaging, memory, scheduling, and governance. One platform. Unlimited intelligence.
+  </p>
+
+  <div class="hero-actions">
+    <form class="signup-form" onsubmit="handleSignup(event)">
+      <input type="email" id="hero-email" placeholder="Enter your email for early access" autocomplete="email" required />
+      <button type="submit" class="btn btn-primary">Notify Me</button>
+    </form>
+    <span class="hero-note">No spam. Release updates only. Unsubscribe anytime.</span>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">8+</div>
+      <div class="stat-label">Native Agent Processes</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <div class="stat-num">9</div>
+      <div class="stat-label">Kernel Security Layers</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <div class="stat-num">Real-time</div>
+      <div class="stat-label">Process Tracing</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Open Source</div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Explore</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</section>
+
+<!-- ── AGENT OS KERNEL ANALOGY ── -->
+<section class="kernel-section">
+  <div class="section-header fade-in-up">
+    <span class="section-tag">Why an Agent OS?</span>
+    <h2>Every great system needs a kernel.<br/>Agents need one too.</h2>
+    <p>Just as an operating system abstracts hardware for applications, Agents Collective abstracts infrastructure for AI agents — giving them memory, scheduling, communication, and governance out of the box.</p>
+  </div>
+
+  <div class="kernel-grid fade-in-up">
+    <div class="kernel-row kernel-header-row">
+      <div class="kernel-col-label">Traditional OS</div>
+      <div class="kernel-col-arrow"></div>
+      <div class="kernel-col-label" style="color:var(--accent);">Agents Collective OS</div>
+    </div>
+
+    <div class="kernel-row">
+      <div class="kernel-cell kernel-os">
+        <span class="kernel-icon">🔲</span>
+        <div>
+          <div class="kernel-name">Kernel</div>
+          <div class="kernel-desc">Manages all system resources</div>
+        </div>
+      </div>
+      <div class="kernel-arrow">→</div>
+      <div class="kernel-cell kernel-ac">
+        <span class="kernel-icon">⬡</span>
+        <div>
+          <div class="kernel-name">Agent Orchestrator</div>
+          <div class="kernel-desc">FastAPI hub — manages all agent resources, routing, and state</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kernel-row">
+      <div class="kernel-cell kernel-os">
+        <span class="kernel-icon">⚙️</span>
+        <div>
+          <div class="kernel-name">Processes</div>
+          <div class="kernel-desc">Isolated units of execution</div>
+        </div>
+      </div>
+      <div class="kernel-arrow">→</div>
+      <div class="kernel-cell kernel-ac">
+        <span class="kernel-icon">🤖</span>
+        <div>
+          <div class="kernel-name">Agents</div>
+          <div class="kernel-desc">Persistent WebSocket processes with unique IDs, heartbeats, and capabilities</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kernel-row">
+      <div class="kernel-cell kernel-os">
+        <span class="kernel-icon">📡</span>
+        <div>
+          <div class="kernel-name">IPC / Signals</div>
+          <div class="kernel-desc">Inter-process communication</div>
+        </div>
+      </div>
+      <div class="kernel-arrow">→</div>
+      <div class="kernel-cell kernel-ac">
+        <span class="kernel-icon">🔁</span>
+        <div>
+          <div class="kernel-name">WebSocket Message Bus</div>
+          <div class="kernel-desc">Typed messages — task_request, task_result, settings_push, task_cancel</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kernel-row">
+      <div class="kernel-cell kernel-os">
+        <span class="kernel-icon">📅</span>
+        <div>
+          <div class="kernel-name">Scheduler</div>
+          <div class="kernel-desc">Decides what runs when</div>
+        </div>
+      </div>
+      <div class="kernel-arrow">→</div>
+      <div class="kernel-cell kernel-ac">
+        <span class="kernel-icon">🧠</span>
+        <div>
+          <div class="kernel-name">Task Planner + Executor</div>
+          <div class="kernel-desc">LLM-generated WorkflowPlans with step sequencing, chaining, and cancellation</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kernel-row">
+      <div class="kernel-cell kernel-os">
+        <span class="kernel-icon">💾</span>
+        <div>
+          <div class="kernel-name">Persistent Storage</div>
+          <div class="kernel-desc">Filesystem, databases, memory</div>
+        </div>
+      </div>
+      <div class="kernel-arrow">→</div>
+      <div class="kernel-cell kernel-ac">
+        <span class="kernel-icon">🧬</span>
+        <div>
+          <div class="kernel-name">Cortex Memory</div>
+          <div class="kernel-desc">Per-agent Markdown + SQLite FTS5. Facts, Patterns, Preferences — with LLM compression</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kernel-row">
+      <div class="kernel-cell kernel-os">
+        <span class="kernel-icon">🔌</span>
+        <div>
+          <div class="kernel-name">System Call Interface</div>
+          <div class="kernel-desc">Controlled access to hardware</div>
+        </div>
+      </div>
+      <div class="kernel-arrow">→</div>
+      <div class="kernel-cell kernel-ac">
+        <span class="kernel-icon">⚡</span>
+        <div>
+          <div class="kernel-name">LLM Proxy Gateway</div>
+          <div class="kernel-desc">Single governed interface to all LLMs — with rate limits, budgets, and guardrails</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kernel-row">
+      <div class="kernel-cell kernel-os">
+        <span class="kernel-icon">🖥</span>
+        <div>
+          <div class="kernel-name">System Monitor</div>
+          <div class="kernel-desc">Observe running processes</div>
+        </div>
+      </div>
+      <div class="kernel-arrow">→</div>
+      <div class="kernel-cell kernel-ac">
+        <span class="kernel-icon">📊</span>
+        <div>
+          <div class="kernel-name">Real-time Dashboard</div>
+          <div class="kernel-desc">Live SSE streams — agent registry, workflow tracing, LLM analytics, memory browser</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kernel-row">
+      <div class="kernel-cell kernel-os">
+        <span class="kernel-icon">🛡</span>
+        <div>
+          <div class="kernel-name">Privilege Model</div>
+          <div class="kernel-desc">Security rings, sandboxing</div>
+        </div>
+      </div>
+      <div class="kernel-arrow">→</div>
+      <div class="kernel-cell kernel-ac">
+        <span class="kernel-icon">🔐</span>
+        <div>
+          <div class="kernel-name">9-Layer Security Stack</div>
+          <div class="kernel-desc">Kill switches, AST analysis, POSIX RLIMIT, consent gates, Fernet encryption</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── ARCHITECTURE ── -->
+<section class="arch-section" id="architecture">
+  <div class="section-header fade-in-up">
+    <span class="section-tag">Kernel Architecture</span>
+    <h2>A Kernel Built for Intelligence</h2>
+    <p>A clean hub-and-spoke architecture. Agent processes register, connect via persistent WebSockets, discover each other's capabilities, and compose into powerful automated workflows — all managed by the orchestrator kernel.</p>
+  </div>
+
+  <div class="arch-diagram fade-in-up">
+    <div class="arch-svg-wrap">
+      <svg viewBox="0 0 780 380" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+        <defs>
+          <radialGradient id="orchGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="4" refY="2" orient="auto">
+            <path d="M0,0 L0,4 L6,2 z" fill="rgba(99,102,241,0.6)"/>
+          </marker>
+          <marker id="arr2" markerWidth="8" markerHeight="8" refX="4" refY="2" orient="auto">
+            <path d="M0,0 L0,4 L6,2 z" fill="rgba(6,182,212,0.6)"/>
+          </marker>
+        </defs>
+
+        <!-- Orchestrator Hub -->
+        <circle cx="390" cy="190" r="75" fill="url(#orchGrad)" stroke="rgba(99,102,241,0.5)" stroke-width="1.5"/>
+        <circle cx="390" cy="190" r="52" fill="rgba(99,102,241,0.1)" stroke="rgba(99,102,241,0.4)" stroke-width="1"/>
+        <rect x="360" y="165" width="60" height="50" rx="10" fill="rgba(99,102,241,0.2)" stroke="rgba(99,102,241,0.7)" stroke-width="1.5" filter="url(#glow)"/>
+        <text x="390" y="186" text-anchor="middle" fill="#a5b4fc" font-size="11" font-family="Space Grotesk" font-weight="700">AGENT</text>
+        <text x="390" y="200" text-anchor="middle" fill="#a5b4fc" font-size="11" font-family="Space Grotesk" font-weight="700">ORCHESTRATOR</text>
+        <text x="390" y="215" text-anchor="middle" fill="rgba(148,163,184,0.7)" font-size="8">FastAPI · WebSocket · EventBus</text>
+
+        <!-- Lines to agents -->
+        <line x1="338" y1="165" x2="220" y2="92" stroke="rgba(99,102,241,0.4)" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+        <line x1="320" y1="190" x2="165" y2="190" stroke="rgba(99,102,241,0.4)" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+        <line x1="338" y1="215" x2="220" y2="292" stroke="rgba(99,102,241,0.4)" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+        <line x1="442" y1="165" x2="560" y2="92" stroke="rgba(6,182,212,0.4)" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#arr2)"/>
+        <line x1="460" y1="190" x2="615" y2="190" stroke="rgba(6,182,212,0.4)" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#arr2)"/>
+        <line x1="442" y1="215" x2="560" y2="292" stroke="rgba(6,182,212,0.4)" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#arr2)"/>
+        <line x1="390" y1="115" x2="390" y2="55" stroke="rgba(16,185,129,0.5)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+        <line x1="390" y1="265" x2="390" y2="335" stroke="rgba(245,158,11,0.5)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+        <!-- Agent nodes left -->
+        <rect x="80" y="60" width="120" height="62" rx="10" fill="rgba(13,18,32,0.9)" stroke="rgba(99,102,241,0.35)" stroke-width="1"/>
+        <text x="88" y="80" fill="#818cf8" font-size="16">🌐</text>
+        <text x="108" y="82" fill="#e2e8f0" font-size="9.5" font-family="Space Grotesk" font-weight="600">Browser Agent</text>
+        <text x="88" y="96" fill="#64748b" font-size="7.5">Web automation</text>
+        <text x="88" y="108" fill="rgba(99,102,241,0.7)" font-size="7" font-family="JetBrains Mono">ws://orch/ws/{id}</text>
+
+        <rect x="45" y="159" width="120" height="62" rx="10" fill="rgba(13,18,32,0.9)" stroke="rgba(99,102,241,0.35)" stroke-width="1"/>
+        <text x="53" y="179" fill="#818cf8" font-size="16">💬</text>
+        <text x="73" y="181" fill="#e2e8f0" font-size="9.5" font-family="Space Grotesk" font-weight="600">Slack Connector</text>
+        <text x="53" y="196" fill="#64748b" font-size="7.5">Socket Mode bridge</text>
+        <text x="53" y="208" fill="rgba(99,102,241,0.7)" font-size="7" font-family="JetBrains Mono">capability: relay</text>
+
+        <rect x="80" y="258" width="120" height="62" rx="10" fill="rgba(13,18,32,0.9)" stroke="rgba(99,102,241,0.35)" stroke-width="1"/>
+        <text x="88" y="278" fill="#818cf8" font-size="16">🗂</text>
+        <text x="108" y="280" fill="#e2e8f0" font-size="9.5" font-family="Space Grotesk" font-weight="600">Filesystem Agent</text>
+        <text x="88" y="295" fill="#64748b" font-size="7.5">Sandboxed file ops</text>
+        <text x="88" y="307" fill="rgba(99,102,241,0.7)" font-size="7" font-family="JetBrains Mono">path traversal safe</text>
+
+        <!-- Agent nodes right -->
+        <rect x="580" y="60" width="130" height="62" rx="10" fill="rgba(13,18,32,0.9)" stroke="rgba(6,182,212,0.35)" stroke-width="1"/>
+        <text x="588" y="80" fill="#22d3ee" font-size="16">🧠</text>
+        <text x="608" y="82" fill="#e2e8f0" font-size="9.5" font-family="Space Grotesk" font-weight="600">Task Planner</text>
+        <text x="588" y="96" fill="#64748b" font-size="7.5">LLM workflow planning</text>
+        <text x="588" y="108" fill="rgba(6,182,212,0.7)" font-size="7" font-family="JetBrains Mono">plan_task →</text>
+
+        <rect x="615" y="159" width="130" height="62" rx="10" fill="rgba(13,18,32,0.9)" stroke="rgba(6,182,212,0.35)" stroke-width="1"/>
+        <text x="623" y="179" fill="#22d3ee" font-size="16">⚙️</text>
+        <text x="645" y="181" fill="#e2e8f0" font-size="9.5" font-family="Space Grotesk" font-weight="600">Task Executor</text>
+        <text x="623" y="196" fill="#64748b" font-size="7.5">SQLite · step chaining</text>
+        <text x="623" y="208" fill="rgba(6,182,212,0.7)" font-size="7" font-family="JetBrains Mono">execute_workflow</text>
+
+        <rect x="580" y="258" width="130" height="62" rx="10" fill="rgba(13,18,32,0.9)" stroke="rgba(6,182,212,0.35)" stroke-width="1"/>
+        <text x="588" y="278" fill="#22d3ee" font-size="16">💻</text>
+        <text x="608" y="280" fill="#e2e8f0" font-size="9.5" font-family="Space Grotesk" font-weight="600">Code Executor</text>
+        <text x="588" y="295" fill="#64748b" font-size="7.5">9-layer sandbox</text>
+        <text x="588" y="307" fill="rgba(6,182,212,0.7)" font-size="7" font-family="JetBrains Mono">execute_code</text>
+
+        <!-- Top: Dashboard -->
+        <rect x="320" y="10" width="140" height="48" rx="10" fill="rgba(13,18,32,0.9)" stroke="rgba(16,185,129,0.4)" stroke-width="1"/>
+        <text x="390" y="30" text-anchor="middle" fill="#34d399" font-size="9.5" font-family="Space Grotesk" font-weight="600">Dashboard</text>
+        <text x="390" y="44" text-anchor="middle" fill="#64748b" font-size="7.5">SSE · Real-time · WebSocket</text>
+
+        <!-- Bottom: Storage -->
+        <rect x="300" y="338" width="180" height="36" rx="10" fill="rgba(13,18,32,0.9)" stroke="rgba(245,158,11,0.4)" stroke-width="1"/>
+        <text x="390" y="353" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="Space Grotesk" font-weight="600">Cortex Memory · LLM Proxy · SQLite</text>
+        <text x="390" y="366" text-anchor="middle" fill="#64748b" font-size="7">Persistent storage layer</text>
+
+        <!-- WebSocket label on center line -->
+        <rect x="358" y="130" width="64" height="14" rx="4" fill="rgba(99,102,241,0.15)" stroke="rgba(99,102,241,0.3)" stroke-width="0.5"/>
+        <text x="390" y="141" text-anchor="middle" fill="rgba(165,180,252,0.8)" font-size="7" font-family="JetBrains Mono">WebSocket</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="features-section" id="features">
+  <div class="section-header fade-in-up">
+    <span class="section-tag">OS Capabilities</span>
+    <h2>Everything a Kernel<br/>Provides — for Agents</h2>
+    <p>Scheduling, memory, IPC, governance, sandboxing. All the primitives your agents need to run reliably in production — without you building any of it from scratch.</p>
+  </div>
+
+  <div class="features-grid">
+
+    <div class="feature-card fade-in-up">
+      <div class="feature-icon" style="background:rgba(99,102,241,0.15);">🔄</div>
+      <h3>Workflow Planning &amp; Execution</h3>
+      <p>LLM-powered planner discovers available agent capabilities, generates multi-step WorkflowPlans, and forwards to the executor — all automatically. Step outputs chain into next-step inputs via template substitution.</p>
+      <div class="feature-tags">
+        <span class="tag" style="background:rgba(99,102,241,0.12);color:#a5b4fc;">plan_task</span>
+        <span class="tag" style="background:rgba(99,102,241,0.12);color:#a5b4fc;">execute_workflow</span>
+        <span class="tag" style="background:rgba(99,102,241,0.12);color:#a5b4fc;">step-chaining</span>
+      </div>
+    </div>
+
+    <div class="feature-card fade-in-up">
+      <div class="feature-icon" style="background:rgba(139,92,246,0.15);">🧠</div>
+      <h3>Cortex Long-Term Memory</h3>
+      <p>Per-agent persistent memory backed by Markdown files and SQLite FTS5. Organized into typed categories (Facts, Preferences, Patterns, Instructions, Errors). Auto-compresses via LLM when categories grow beyond thresholds.</p>
+      <div class="feature-tags">
+        <span class="tag" style="background:rgba(139,92,246,0.12);color:#c4b5fd;">memory_write</span>
+        <span class="tag" style="background:rgba(139,92,246,0.12);color:#c4b5fd;">FTS5 search</span>
+        <span class="tag" style="background:rgba(139,92,246,0.12);color:#c4b5fd;">auto-compress</span>
+      </div>
+    </div>
+
+    <div class="feature-card fade-in-up">
+      <div class="feature-icon" style="background:rgba(6,182,212,0.15);">⚡</div>
+      <h3>Centralized LLM Proxy</h3>
+      <p>All agent LLM traffic flows through a single gateway with rate limiting, daily token budgets, cost tracking, guardrails (blocked phrases, input/output scanning), and per-agent usage analytics — visible in the dashboard.</p>
+      <div class="feature-tags">
+        <span class="tag" style="background:rgba(6,182,212,0.12);color:#67e8f9;">Anthropic</span>
+        <span class="tag" style="background:rgba(6,182,212,0.12);color:#67e8f9;">OpenAI</span>
+        <span class="tag" style="background:rgba(6,182,212,0.12);color:#67e8f9;">Gemini</span>
+        <span class="tag" style="background:rgba(6,182,212,0.12);color:#67e8f9;">rate-limit</span>
+      </div>
+    </div>
+
+    <div class="feature-card fade-in-up">
+      <div class="feature-icon" style="background:rgba(16,185,129,0.15);">📡</div>
+      <h3>Real-time WebSocket Hub</h3>
+      <p>Agents register once and maintain persistent WebSocket connections. Heartbeat monitoring (15 s ping / 30 s timeout) ensures the registry stays accurate. Agent IDs persist across restarts via <code style="font-family:monospace;font-size:0.75em;background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:3px">.agent_id</code> files for seamless reconnects.</p>
+      <div class="feature-tags">
+        <span class="tag" style="background:rgba(16,185,129,0.12);color:#6ee7b7;">FastAPI</span>
+        <span class="tag" style="background:rgba(16,185,129,0.12);color:#6ee7b7;">EventBus</span>
+        <span class="tag" style="background:rgba(16,185,129,0.12);color:#6ee7b7;">SSE</span>
+      </div>
+    </div>
+
+    <div class="feature-card fade-in-up">
+      <div class="feature-icon" style="background:rgba(245,158,11,0.15);">📊</div>
+      <h3>Live Monitoring Dashboard</h3>
+      <p>A full-featured browser dashboard: agent registry, workflow tracing with per-step live updates, LLM usage analytics with query drawer, Cortex memory browser, and push-based settings management — all over SSE.</p>
+      <div class="feature-tags">
+        <span class="tag" style="background:rgba(245,158,11,0.12);color:#fcd34d;">SSE streams</span>
+        <span class="tag" style="background:rgba(245,158,11,0.12);color:#fcd34d;">real-time</span>
+        <span class="tag" style="background:rgba(245,158,11,0.12);color:#fcd34d;">no framework</span>
+      </div>
+    </div>
+
+    <div class="feature-card fade-in-up">
+      <div class="feature-icon" style="background:rgba(239,68,68,0.15);">🛡</div>
+      <h3>Settings Push &amp; Live Control</h3>
+      <p>Change any configuration from the dashboard and broadcast to all connected agents instantly via <code style="font-family:monospace;font-size:0.75em;background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:3px">settings_push</code> WebSocket messages. Kill switches, rate limits, and security policies apply without restarts.</p>
+      <div class="feature-tags">
+        <span class="tag" style="background:rgba(239,68,68,0.12);color:#fca5a5;">live-reload</span>
+        <span class="tag" style="background:rgba(239,68,68,0.12);color:#fca5a5;">kill-switch</span>
+        <span class="tag" style="background:rgba(239,68,68,0.12);color:#fca5a5;">zero restart</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── WORKFLOW VISUAL ── -->
+<section class="workflow-section" id="workflow">
+  <div class="section-header fade-in-up">
+    <span class="section-tag">Process Scheduler</span>
+    <h2>From Intent to Execution<br/>in Seconds</h2>
+    <p>Natural language in. A structured multi-agent workflow plan out. The scheduler sequences agent processes, chains outputs, and traces every step in real time.</p>
+  </div>
+
+  <div class="workflow-visual fade-in-up">
+    <div class="wf-node">
+      <div class="wf-node-box" style="background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.4);">
+        <span>💬</span>
+        <span style="font-size:0.6rem;color:var(--muted);font-family:JetBrains Mono">Slack / API</span>
+      </div>
+      <span class="wf-node-label">User Intent</span>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node">
+      <div class="wf-node-box" style="background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.4);">
+        <span>🧠</span>
+        <span style="font-size:0.6rem;color:var(--muted);font-family:JetBrains Mono">plan_task</span>
+      </div>
+      <span class="wf-node-label">Task Planner</span>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node">
+      <div class="wf-node-box" style="background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.4);">
+        <span>📋</span>
+        <span style="font-size:0.6rem;color:var(--muted);font-family:JetBrains Mono">WorkflowPlan</span>
+      </div>
+      <span class="wf-node-label">Plan Generated</span>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node">
+      <div class="wf-node-box" style="background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.4);">
+        <span>⚙️</span>
+        <span style="font-size:0.6rem;color:var(--muted);font-family:JetBrains Mono">execute</span>
+      </div>
+      <span class="wf-node-label">Executor Runs Steps</span>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node">
+      <div class="wf-node-box" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.4);">
+        <span>📡</span>
+        <span style="font-size:0.6rem;color:var(--muted);font-family:JetBrains Mono">SSE events</span>
+      </div>
+      <span class="wf-node-label">Live Dashboard</span>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node">
+      <div class="wf-node-box" style="background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.4);">
+        <span>✅</span>
+        <span style="font-size:0.6rem;color:var(--muted);font-family:JetBrains Mono">result</span>
+      </div>
+      <span class="wf-node-label">Result Delivered</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── AGENTS ── -->
+<section class="agents-section" id="agents">
+  <div class="section-header fade-in-up">
+    <span class="section-tag">Native Agent Processes</span>
+    <h2>A Growing Fleet of<br/>First-Class Agent Processes</h2>
+    <p>Ship with 8 production-ready agents out of the box. Each registers its capabilities at boot. The kernel discovers, routes, and orchestrates them — zero config required.</p>
+  </div>
+
+  <div class="agents-grid">
+
+    <div class="agent-card fade-in-up">
+      <div class="agent-header">
+        <div class="agent-icon" style="background:rgba(99,102,241,0.15);">🌐</div>
+        <div>
+          <div class="agent-name">Browser Agent</div>
+        </div>
+        <span class="agent-status" style="background:rgba(16,185,129,0.15);color:#34d399;">ACTIVE</span>
+      </div>
+      <div class="agent-desc">Playwright-powered web automation. Navigate, click, extract, screenshot — all driven by Claude with proxy-routed LLM calls.</div>
+      <div class="agent-caps">
+        <div class="cap-item">browse_web</div>
+        <div class="cap-item">extract_content</div>
+        <div class="cap-item">take_screenshot</div>
+      </div>
+    </div>
+
+    <div class="agent-card fade-in-up">
+      <div class="agent-header">
+        <div class="agent-icon" style="background:rgba(139,92,246,0.15);">🧠</div>
+        <div>
+          <div class="agent-name">Task Planner</div>
+        </div>
+        <span class="agent-status" style="background:rgba(16,185,129,0.15);color:#34d399;">ACTIVE</span>
+      </div>
+      <div class="agent-desc">Discovers all registered capabilities, calls the LLM via orchestrator proxy, generates a structured WorkflowPlan, and auto-forwards to executor.</div>
+      <div class="agent-caps">
+        <div class="cap-item">plan_task</div>
+        <div class="cap-item">capability discovery</div>
+        <div class="cap-item">memory fetch</div>
+      </div>
+    </div>
+
+    <div class="agent-card fade-in-up">
+      <div class="agent-header">
+        <div class="agent-icon" style="background:rgba(6,182,212,0.15);">⚙️</div>
+        <div>
+          <div class="agent-name">Task Executor</div>
+        </div>
+        <span class="agent-status" style="background:rgba(16,185,129,0.15);color:#34d399;">ACTIVE</span>
+      </div>
+      <div class="agent-desc">Runs workflow steps sequentially with SQLite persistence, template substitution for step output chaining, and live <code style="font-size:0.7em">workflow_event</code> WebSocket frames.</div>
+      <div class="agent-caps">
+        <div class="cap-item">execute_workflow</div>
+        <div class="cap-item">step chaining</div>
+        <div class="cap-item">cancel support</div>
+      </div>
+    </div>
+
+    <div class="agent-card fade-in-up">
+      <div class="agent-header">
+        <div class="agent-icon" style="background:rgba(245,158,11,0.15);">💬</div>
+        <div>
+          <div class="agent-name">Slack Connector</div>
+        </div>
+        <span class="agent-status" style="background:rgba(16,185,129,0.15);color:#34d399;">ACTIVE</span>
+      </div>
+      <div class="agent-desc">Bidirectional Slack Socket Mode bridge. Receives Slack messages and forwards as orchestrator tasks; delivers results back to the originating channel.</div>
+      <div class="agent-caps">
+        <div class="cap-item">slack_send</div>
+        <div class="cap-item">event relay</div>
+        <div class="cap-item">socket mode</div>
+      </div>
+    </div>
+
+    <div class="agent-card fade-in-up">
+      <div class="agent-header">
+        <div class="agent-icon" style="background:rgba(239,68,68,0.15);">💻</div>
+        <div>
+          <div class="agent-name">Code Executor</div>
+        </div>
+        <span class="agent-status" style="background:rgba(16,185,129,0.15);color:#34d399;">ACTIVE</span>
+      </div>
+      <div class="agent-desc">Multi-language sandboxed execution (Python, Node.js, Bash, Ruby…) with 9 security layers, AST analysis, POSIX resource limits, and a live kill switch.</div>
+      <div class="agent-caps">
+        <div class="cap-item">execute_code</div>
+        <div class="cap-item">run_script</div>
+        <div class="cap-item">list_runtimes</div>
+      </div>
+    </div>
+
+    <div class="agent-card fade-in-up">
+      <div class="agent-header">
+        <div class="agent-icon" style="background:rgba(16,185,129,0.15);">🗂</div>
+        <div>
+          <div class="agent-name">Filesystem Agent</div>
+        </div>
+        <span class="agent-status" style="background:rgba(16,185,129,0.15);color:#34d399;">ACTIVE</span>
+      </div>
+      <div class="agent-desc">Safe cross-platform file operations with configurable path sandboxing. Prevents path traversal via <code style="font-size:0.7em">Path.resolve() + relative_to()</code> checks on every operation.</div>
+      <div class="agent-caps">
+        <div class="cap-item">read_file / write_file</div>
+        <div class="cap-item">search_files</div>
+        <div class="cap-item">directory ops</div>
+      </div>
+    </div>
+
+    <div class="agent-card fade-in-up">
+      <div class="agent-header">
+        <div class="agent-icon" style="background:rgba(99,102,241,0.15);">📄</div>
+        <div>
+          <div class="agent-name">Document Agent</div>
+        </div>
+        <span class="agent-status" style="background:rgba(16,185,129,0.15);color:#34d399;">ACTIVE</span>
+      </div>
+      <div class="agent-desc">PDF and image text extraction with local-only and AI-assisted modes. Explicit per-call consent gate before any data leaves the machine.</div>
+      <div class="agent-caps">
+        <div class="cap-item">extract_document</div>
+        <div class="cap-item">convert_to_text</div>
+        <div class="cap-item">consent gate</div>
+      </div>
+    </div>
+
+    <div class="agent-card fade-in-up">
+      <div class="agent-header">
+        <div class="agent-icon" style="background:rgba(236,72,153,0.15);">🎭</div>
+        <div>
+          <div class="agent-name">Avatar Agent</div>
+        </div>
+        <span class="agent-status" style="background:rgba(245,158,11,0.15);color:#fbbf24;">PREVIEW</span>
+      </div>
+      <div class="agent-desc">Human-like animated avatar with voice interaction. AvatarStream Protocol v1 event system for real-time expression, speech, and gesture streaming.</div>
+      <div class="agent-caps">
+        <div class="cap-item">voice interaction</div>
+        <div class="cap-item">avatar_stream</div>
+        <div class="cap-item">expression events</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── SECURITY ── -->
+<section class="security-section" id="security">
+  <div class="security-grid">
+
+    <div class="security-content fade-in-up">
+      <span class="section-tag">Kernel Security</span>
+      <h2>Privilege Rings for AI.<br/>Zero Compromises.</h2>
+      <p>Like a hardened OS kernel, Agents Collective enforces security at every layer — from the syscall interface (LLM Proxy guardrails) to process isolation (subprocess sandboxing) to storage access control (path-sandboxed filesystem). Agents only ever get what they're allowed to have.</p>
+      <div class="security-list">
+        <div class="security-item">
+          <span class="security-item-icon">🔴</span>
+          <div class="security-item-text">
+            <h4>Kill Switch</h4>
+            <p>Per-agent and global kill switches pushed live from the dashboard. Zero restart required.</p>
+          </div>
+        </div>
+        <div class="security-item">
+          <span class="security-item-icon">🔐</span>
+          <div class="security-item-text">
+            <h4>Fernet-Encrypted Settings</h4>
+            <p>All API keys and secrets stored encrypted via Fernet symmetric encryption in the settings store.</p>
+          </div>
+        </div>
+        <div class="security-item">
+          <span class="security-item-icon">🛡</span>
+          <div class="security-item-text">
+            <h4>LLM Guardrails</h4>
+            <p>Input/output phrase blocking, daily token budgets, and per-agent rate limiting on all LLM traffic.</p>
+          </div>
+        </div>
+        <div class="security-item">
+          <span class="security-item-icon">🔒</span>
+          <div class="security-item-text">
+            <h4>Explicit Consent Gates</h4>
+            <p>Document Agent requires per-call <code style="font-family:monospace;font-size:0.75em">user_consent=true</code> before any extracted text reaches an LLM.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="security-layers fade-in-up">
+      <div class="layers-box">
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;">Code Execution — Security Layers</div>
+
+        <div class="layer-row">
+          <div class="layer-num" style="background:rgba(239,68,68,0.2);color:#f87171;">1</div>
+          <span class="layer-name" style="color:#e2e8f0;">Kill Switch</span>
+          <span class="layer-badge" style="background:rgba(239,68,68,0.15);color:#f87171;">ALWAYS</span>
+        </div>
+        <div class="layer-row">
+          <div class="layer-num" style="background:rgba(245,158,11,0.2);color:#fbbf24;">2</div>
+          <span class="layer-name" style="color:#e2e8f0;">Language Allowlist</span>
+          <span class="layer-badge" style="background:rgba(245,158,11,0.15);color:#fbbf24;">CONFIG</span>
+        </div>
+        <div class="layer-row">
+          <div class="layer-num" style="background:rgba(239,68,68,0.2);color:#f87171;">3</div>
+          <span class="layer-name" style="color:#e2e8f0;">Blocked Modules (ctypes, cffi…)</span>
+          <span class="layer-badge" style="background:rgba(239,68,68,0.15);color:#f87171;">ALWAYS</span>
+        </div>
+        <div class="layer-row">
+          <div class="layer-num" style="background:rgba(99,102,241,0.2);color:#a5b4fc;">4</div>
+          <span class="layer-name" style="color:#e2e8f0;">AST Analysis (exec/eval/import)</span>
+          <span class="layer-badge" style="background:rgba(99,102,241,0.15);color:#a5b4fc;">STATIC</span>
+        </div>
+        <div class="layer-row">
+          <div class="layer-num" style="background:rgba(6,182,212,0.2);color:#67e8f9;">5</div>
+          <span class="layer-name" style="color:#e2e8f0;">Subprocess Isolation</span>
+          <span class="layer-badge" style="background:rgba(6,182,212,0.15);color:#67e8f9;">RUNTIME</span>
+        </div>
+        <div class="layer-row">
+          <div class="layer-num" style="background:rgba(6,182,212,0.2);color:#67e8f9;">6</div>
+          <span class="layer-name" style="color:#e2e8f0;">Environment Scrub (API keys)</span>
+          <span class="layer-badge" style="background:rgba(6,182,212,0.15);color:#67e8f9;">RUNTIME</span>
+        </div>
+        <div class="layer-row">
+          <div class="layer-num" style="background:rgba(245,158,11,0.2);color:#fbbf24;">7</div>
+          <span class="layer-name" style="color:#e2e8f0;">Execution Timeout</span>
+          <span class="layer-badge" style="background:rgba(245,158,11,0.15);color:#fbbf24;">CONFIG</span>
+        </div>
+        <div class="layer-row">
+          <div class="layer-num" style="background:rgba(245,158,11,0.2);color:#fbbf24;">8</div>
+          <span class="layer-name" style="color:#e2e8f0;">Output Size Cap</span>
+          <span class="layer-badge" style="background:rgba(245,158,11,0.15);color:#fbbf24;">CONFIG</span>
+        </div>
+        <div class="layer-row">
+          <div class="layer-num" style="background:rgba(16,185,129,0.2);color:#34d399;">9</div>
+          <span class="layer-name" style="color:#e2e8f0;">POSIX RLIMIT_AS + RLIMIT_CPU</span>
+          <span class="layer-badge" style="background:rgba(16,185,129,0.15);color:#34d399;">OS</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── DASHBOARD PREVIEW ── -->
+<section class="dashboard-section" id="dashboard">
+  <div class="section-header fade-in-up">
+    <span class="section-tag">System Monitor</span>
+    <h2>Your Agent OS Control Panel</h2>
+    <p>A zero-dependency, real-time system monitor for your agent OS. Observe running processes, trace workflow execution, inspect memory, govern LLM syscalls — all from a single browser tab over live SSE streams.</p>
+  </div>
+
+  <div class="dashboard-preview fade-in-up">
+    <div class="dashboard-tabs">
+      <button class="dash-tab active" onclick="switchTab('agents', this)">🤖 Agents</button>
+      <button class="dash-tab" onclick="switchTab('workflows', this)">📋 Workflows</button>
+      <button class="dash-tab" onclick="switchTab('llm', this)">⚡ LLM Proxy</button>
+      <button class="dash-tab" onclick="switchTab('cortex', this)">🧠 Cortex</button>
+    </div>
+
+    <!-- AGENTS SCREEN -->
+    <div class="dash-screen active" id="screen-agents">
+      <div class="dash-topbar">
+        <div class="dot" style="background:#ff5f57;"></div>
+        <div class="dot" style="background:#febc2e;"></div>
+        <div class="dot" style="background:#28c840;"></div>
+        <span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);font-family:JetBrains Mono">Agents Collective · Dashboard</span>
+        <span style="font-size:0.65rem;color:#34d399;">● 8 agents online</span>
+      </div>
+      <div class="dash-body">
+        <div class="dash-sidebar">
+          <div class="dash-nav-item active">🤖 Agents</div>
+          <div class="dash-nav-item">📋 Workflows</div>
+          <div class="dash-nav-item">⚡ LLM Proxy</div>
+          <div class="dash-nav-item">🧠 Cortex</div>
+          <div class="dash-nav-item">⚙️ Configuration</div>
+        </div>
+        <div class="dash-main">
+          <div style="font-size:0.8rem;font-weight:600;margin-bottom:0.75rem;display:flex;align-items:center;justify-content:space-between;">
+            <span>Active Agents</span>
+            <span style="font-size:0.65rem;color:var(--muted);font-family:JetBrains Mono">last seen: just now</span>
+          </div>
+          <div class="screen-agents">
+            <div class="agent-row">
+              <span class="agent-row-icon">🌐</span>
+              <span class="agent-row-name">browser-agent</span>
+              <span class="agent-row-id">f2a9...c31b</span>
+              <span class="status-dot" style="color:#34d399;background:#34d399;"></span>
+            </div>
+            <div class="agent-row">
+              <span class="agent-row-icon">🧠</span>
+              <span class="agent-row-name">task-planner-agent</span>
+              <span class="agent-row-id">a1c3...8f02</span>
+              <span class="status-dot" style="color:#34d399;background:#34d399;"></span>
+            </div>
+            <div class="agent-row">
+              <span class="agent-row-icon">⚙️</span>
+              <span class="agent-row-name">task-executor-agent</span>
+              <span class="agent-row-id">b7e1...4d90</span>
+              <span class="status-dot" style="color:#34d399;background:#34d399;"></span>
+            </div>
+            <div class="agent-row">
+              <span class="agent-row-icon">💻</span>
+              <span class="agent-row-name">code-execution-agent</span>
+              <span class="agent-row-id">c9f4...2a11</span>
+              <span class="status-dot" style="color:#34d399;background:#34d399;"></span>
+            </div>
+            <div class="agent-row">
+              <span class="agent-row-icon">💬</span>
+              <span class="agent-row-name">slack-connector-agent</span>
+              <span class="agent-row-id">d0b2...7e55</span>
+              <span class="status-dot" style="color:#34d399;background:#34d399;"></span>
+            </div>
+            <div class="agent-row">
+              <span class="agent-row-icon">🗂</span>
+              <span class="agent-row-name">filesystem-agent</span>
+              <span class="agent-row-id">e3a7...1c88</span>
+              <span class="status-dot" style="color:#fbbf24;background:#fbbf24;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKFLOWS SCREEN -->
+    <div class="dash-screen" id="screen-workflows">
+      <div class="dash-topbar">
+        <div class="dot" style="background:#ff5f57;"></div>
+        <div class="dot" style="background:#febc2e;"></div>
+        <div class="dot" style="background:#28c840;"></div>
+        <span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);font-family:JetBrains Mono">Agents Collective · Workflows</span>
+        <span style="font-size:0.65rem;color:#fbbf24;">⚡ 1 executing</span>
+      </div>
+      <div class="dash-body">
+        <div class="dash-sidebar">
+          <div class="dash-nav-item">🤖 Agents</div>
+          <div class="dash-nav-item active">📋 Workflows</div>
+          <div class="dash-nav-item">⚡ LLM Proxy</div>
+          <div class="dash-nav-item">🧠 Cortex</div>
+          <div class="dash-nav-item">⚙️ Configuration</div>
+        </div>
+        <div class="dash-main" style="display:flex;flex-direction:column;">
+          <div style="font-size:0.8rem;font-weight:600;margin-bottom:0.75rem;">Workflows</div>
+          <div class="screen-workflow" style="flex:1;">
+            <div class="wf-list">
+              <div class="wf-item selected">
+                <div class="wf-item-top">
+                  <span class="wf-item-name">Research & Summarize</span>
+                  <span class="tag" style="background:rgba(245,158,11,0.15);color:#fbbf24;font-size:0.62rem;">executing</span>
+                </div>
+                <div class="wf-item-steps">4 steps · started 12s ago</div>
+              </div>
+              <div class="wf-item">
+                <div class="wf-item-top">
+                  <span class="wf-item-name">Extract & Analyze PDF</span>
+                  <span class="tag" style="background:rgba(16,185,129,0.15);color:#34d399;font-size:0.62rem;">completed</span>
+                </div>
+                <div class="wf-item-steps">3 steps · 42s ago</div>
+              </div>
+              <div class="wf-item">
+                <div class="wf-item-top">
+                  <span class="wf-item-name">Code Review Pipeline</span>
+                  <span class="tag" style="background:rgba(16,185,129,0.15);color:#34d399;font-size:0.62rem;">completed</span>
+                </div>
+                <div class="wf-item-steps">5 steps · 2m ago</div>
+              </div>
+              <div class="wf-item">
+                <div class="wf-item-top">
+                  <span class="wf-item-name">Data Scrape & Report</span>
+                  <span class="tag" style="background:rgba(239,68,68,0.15);color:#f87171;font-size:0.62rem;">cancelled</span>
+                </div>
+                <div class="wf-item-steps">2 steps · 5m ago</div>
+              </div>
+            </div>
+            <div class="wf-detail">
+              <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.3rem;">Research & Summarize · task-executor-agent</div>
+
+              <!-- Step 1 — done -->
+              <div class="wf-step" style="border-left-color:#34d399;">
+                <div class="wf-step-header">
+                  <div class="wf-step-num" style="background:rgba(16,185,129,0.2);color:#34d399;">1</div>
+                  <span class="wf-step-name">Browse target URL</span>
+                  <span class="wf-step-agent">browser-agent</span>
+                  <span class="tag" style="background:rgba(16,185,129,0.12);color:#34d399;font-size:0.6rem;">done</span>
+                </div>
+                <div class="wf-step-accordions">
+                  <div class="wf-accordion">
+                    <div class="wf-accordion-toggle" onclick="toggleAccordion(this)">
+                      <span class="wf-accordion-caret">▶</span>
+                      <span>Input</span>
+                    </div>
+                    <div class="wf-accordion-body">
+                      <div class="wf-io-block">{ "url": "https://example.com/report-2026" }</div>
+                    </div>
+                  </div>
+                  <div class="wf-accordion">
+                    <div class="wf-accordion-toggle" onclick="toggleAccordion(this)">
+                      <span class="wf-accordion-caret">▶</span>
+                      <span>Output</span>
+                    </div>
+                    <div class="wf-accordion-body">
+                      <div class="wf-io-block">{ "status": "ok", "page_title": "Annual Report 2026", "raw_html_length": 84210 }</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2 — done -->
+              <div class="wf-step" style="border-left-color:#34d399;">
+                <div class="wf-step-header">
+                  <div class="wf-step-num" style="background:rgba(16,185,129,0.2);color:#34d399;">2</div>
+                  <span class="wf-step-name">Extract page content</span>
+                  <span class="wf-step-agent">browser-agent</span>
+                  <span class="tag" style="background:rgba(16,185,129,0.12);color:#34d399;font-size:0.6rem;">done</span>
+                </div>
+                <div class="wf-step-accordions">
+                  <div class="wf-accordion">
+                    <div class="wf-accordion-toggle" onclick="toggleAccordion(this)">
+                      <span class="wf-accordion-caret">▶</span>
+                      <span>Input</span>
+                    </div>
+                    <div class="wf-accordion-body">
+                      <div class="wf-io-block">{ "selector": "article.main-content", "format": "markdown" }</div>
+                    </div>
+                  </div>
+                  <div class="wf-accordion">
+                    <div class="wf-accordion-toggle" onclick="toggleAccordion(this)">
+                      <span class="wf-accordion-caret">▶</span>
+                      <span>Output</span>
+                    </div>
+                    <div class="wf-accordion-body">
+                      <div class="wf-io-block">{ "content": "## Key Findings\n- Revenue up 24%\n- 3 new markets...", "word_count": 1840 }</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3 — running -->
+              <div class="wf-step" style="border-left-color:#fbbf24;animation:stepPulse 1.5s infinite;">
+                <div class="wf-step-header">
+                  <div class="wf-step-num" style="background:rgba(245,158,11,0.2);color:#fbbf24;">3</div>
+                  <span class="wf-step-name">Summarize with LLM</span>
+                  <span class="wf-step-agent">task-planner-agent</span>
+                  <span class="tag" style="background:rgba(245,158,11,0.12);color:#fbbf24;font-size:0.6rem;">running</span>
+                </div>
+                <div class="wf-step-accordions">
+                  <div class="wf-accordion">
+                    <div class="wf-accordion-toggle" onclick="toggleAccordion(this)">
+                      <span class="wf-accordion-caret">▶</span>
+                      <span>Input</span>
+                    </div>
+                    <div class="wf-accordion-body">
+                      <div class="wf-io-block">{ "text": "{{steps[1].output.content}}", "max_words": 200, "style": "executive" }</div>
+                    </div>
+                  </div>
+                  <div class="wf-accordion">
+                    <div class="wf-accordion-toggle" onclick="toggleAccordion(this)" style="opacity:0.4;pointer-events:none;">
+                      <span class="wf-accordion-caret">▶</span>
+                      <span>Output</span>
+                      <span style="margin-left:auto;font-size:0.6rem;opacity:0.6;">pending…</span>
+                    </div>
+                    <div class="wf-accordion-body"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 4 — pending -->
+              <div class="wf-step" style="border-left-color:transparent;opacity:0.4;">
+                <div class="wf-step-header">
+                  <div class="wf-step-num" style="background:rgba(255,255,255,0.05);color:var(--muted);">4</div>
+                  <span class="wf-step-name">Write to filesystem</span>
+                  <span class="wf-step-agent">filesystem-agent</span>
+                  <span class="tag" style="background:rgba(255,255,255,0.05);color:var(--muted);font-size:0.6rem;">pending</span>
+                </div>
+                <div class="wf-step-accordions">
+                  <div class="wf-accordion">
+                    <div class="wf-accordion-toggle" style="pointer-events:none;">
+                      <span class="wf-accordion-caret">▶</span>
+                      <span>Input</span>
+                    </div>
+                  </div>
+                  <div class="wf-accordion">
+                    <div class="wf-accordion-toggle" style="pointer-events:none;">
+                      <span class="wf-accordion-caret">▶</span>
+                      <span>Output</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LLM PROXY SCREEN -->
+    <div class="dash-screen" id="screen-llm">
+      <div class="dash-topbar">
+        <div class="dot" style="background:#ff5f57;"></div>
+        <div class="dot" style="background:#febc2e;"></div>
+        <div class="dot" style="background:#28c840;"></div>
+        <span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);font-family:JetBrains Mono">Agents Collective · LLM Proxy</span>
+      </div>
+      <div class="dash-body">
+        <div class="dash-sidebar">
+          <div class="dash-nav-item">🤖 Agents</div>
+          <div class="dash-nav-item">📋 Workflows</div>
+          <div class="dash-nav-item active">⚡ LLM Proxy</div>
+          <div class="dash-nav-item">🧠 Cortex</div>
+          <div class="dash-nav-item">⚙️ Configuration</div>
+        </div>
+        <div class="dash-main">
+          <div class="screen-llm">
+            <div class="llm-stats-row">
+              <div class="llm-stat-box">
+                <div class="num" style="color:#a5b4fc;">247</div>
+                <div class="lbl">Requests Today</div>
+              </div>
+              <div class="llm-stat-box">
+                <div class="num" style="color:#67e8f9;">1.2M</div>
+                <div class="lbl">Tokens Used</div>
+              </div>
+              <div class="llm-stat-box">
+                <div class="num" style="color:#34d399;">$3.41</div>
+                <div class="lbl">Cost Today</div>
+              </div>
+              <div class="llm-stat-box">
+                <div class="num" style="color:#fbbf24;">2</div>
+                <div class="lbl">Guardrail Hits</div>
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="llm-table">
+                <thead>
+                  <tr>
+                    <th>Agent</th>
+                    <th>Model</th>
+                    <th>Tokens</th>
+                    <th>Cost</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="color:#a5b4fc;font-family:JetBrains Mono;font-size:0.7rem;">task-planner</td>
+                    <td style="color:var(--muted);">claude-haiku-4-5</td>
+                    <td>4,210</td>
+                    <td style="color:#34d399;">$0.012</td>
+                    <td><span class="tag" style="background:rgba(16,185,129,0.12);color:#34d399;font-size:0.6rem;">200</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#a5b4fc;font-family:JetBrains Mono;font-size:0.7rem;">browser-agent</td>
+                    <td style="color:var(--muted);">claude-sonnet-4-6</td>
+                    <td>8,920</td>
+                    <td style="color:#34d399;">$0.089</td>
+                    <td><span class="tag" style="background:rgba(16,185,129,0.12);color:#34d399;font-size:0.6rem;">200</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#a5b4fc;font-family:JetBrains Mono;font-size:0.7rem;">task-planner</td>
+                    <td style="color:var(--muted);">claude-haiku-4-5</td>
+                    <td>1,440</td>
+                    <td style="color:#f87171;">blocked</td>
+                    <td><span class="tag" style="background:rgba(239,68,68,0.12);color:#f87171;font-size:0.6rem;">429</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#a5b4fc;font-family:JetBrains Mono;font-size:0.7rem;">document-agent</td>
+                    <td style="color:var(--muted);">claude-haiku-4-5</td>
+                    <td>3,180</td>
+                    <td style="color:#34d399;">$0.009</td>
+                    <td><span class="tag" style="background:rgba(16,185,129,0.12);color:#34d399;font-size:0.6rem;">200</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CORTEX SCREEN -->
+    <div class="dash-screen" id="screen-cortex">
+      <div class="dash-topbar">
+        <div class="dot" style="background:#ff5f57;"></div>
+        <div class="dot" style="background:#febc2e;"></div>
+        <div class="dot" style="background:#28c840;"></div>
+        <span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);font-family:JetBrains Mono">Agents Collective · Cortex Memory</span>
+      </div>
+      <div class="dash-body">
+        <div class="dash-sidebar">
+          <div class="dash-nav-item">🤖 Agents</div>
+          <div class="dash-nav-item">📋 Workflows</div>
+          <div class="dash-nav-item">⚡ LLM Proxy</div>
+          <div class="dash-nav-item active">🧠 Cortex</div>
+          <div class="dash-nav-item">⚙️ Configuration</div>
+        </div>
+        <div class="dash-main" style="display:flex;gap:0.75rem;">
+          <div class="cortex-agents">
+            <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;">Namespaces</div>
+            <div class="cortex-agent-item selected">__global__</div>
+            <div class="cortex-agent-item">browser-agent</div>
+            <div class="cortex-agent-item">task-planner-agent</div>
+            <div class="cortex-agent-item">slack-connector-agent</div>
+            <div class="cortex-agent-item">document-agent</div>
+          </div>
+          <div class="cortex-memory">
+            <div class="cortex-category">
+              <div class="cortex-cat-header">
+                <span class="cortex-cat-name" style="color:#fbbf24;">Facts</span>
+                <span class="cortex-cat-count">6 entries</span>
+              </div>
+              <div class="cortex-entry">User prefers concise summaries over verbose explanations</div>
+              <div class="cortex-entry">Primary workspace: macOS, Python 3.12, zsh shell</div>
+              <div class="cortex-entry">Default LLM budget: 2M tokens/day</div>
+            </div>
+            <div class="cortex-category">
+              <div class="cortex-cat-header">
+                <span class="cortex-cat-name" style="color:#a5b4fc;">Patterns</span>
+                <span class="cortex-cat-count">4 entries</span>
+              </div>
+              <div class="cortex-entry">Research tasks often followed by document write steps</div>
+              <div class="cortex-entry">Slack messages with "urgent" tag need sub-60s response</div>
+            </div>
+            <div class="cortex-category">
+              <div class="cortex-cat-header">
+                <span class="cortex-cat-name" style="color:#34d399;">Instructions</span>
+                <span class="cortex-cat-count">2 entries</span>
+              </div>
+              <div class="cortex-entry">Always verify PDF consent before AI extraction</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <div class="cta-card fade-in-up">
+    <div style="font-size:2.5rem;margin-bottom:1rem;">⬡</div>
+    <h2>Boot Your First<br/><span class="gradient-text">Agent OS</span></h2>
+    <p>We're putting the finishing touches on the open-source release. Join the waitlist and get priority access, early docs, and a chance to shape what the Agent OS becomes.</p>
+    <div class="cta-signup">
+      <form class="signup-form" onsubmit="handleSignup(event)">
+        <input type="email" id="cta-email" placeholder="your@email.com" autocomplete="email" required />
+        <button type="submit" class="btn btn-primary">Get Early Access</button>
+      </form>
+      <p style="font-size:0.75rem;color:var(--muted);margin-top:0.75rem;opacity:0.7;">Joining <span id="count-display">247</span> developers on the waitlist</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── */
+<footer>
+  <div class="footer-left">
+    <a href="#" class="nav-logo" style="font-size:1rem;">
+      <div class="logo-icon" style="width:28px;height:28px;font-size:0.85rem;">⬡</div>
+      <span>Agents <span style="color:var(--accent)">Collective</span>.ai</span>
+    </a>
+    <span class="footer-copy">The OS for Agent Orchestration. Open Source. Built for the AI community.</span>
+  </div>
+  <div class="footer-links">
+    <a href="#">GitHub</a>
+    <a href="#">Docs</a>
+    <a href="#">Discord</a>
+    <a href="#">Twitter / X</a>
+  </div>
+</footer>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  ✓ You're on the list! We'll notify you at launch.
+</div>
+
+<style>
+  @keyframes stepPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+</style>
+
+<script>
+// ── NETWORK CANVAS ──
+const canvas = document.getElementById('network-canvas');
+const ctx = canvas.getContext('2d');
+let nodes = [], W, H;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function initNodes() {
+  nodes = [];
+  const count = Math.floor((W * H) / 18000);
+  for (let i = 0; i < count; i++) {
+    nodes.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: Math.random() * 1.5 + 0.5
+    });
+  }
+}
+
+function drawNetwork() {
+  ctx.clearRect(0, 0, W, H);
+  const maxDist = 140;
+
+  nodes.forEach(n => {
+    n.x += n.vx; n.y += n.vy;
+    if (n.x < 0 || n.x > W) n.vx *= -1;
+    if (n.y < 0 || n.y > H) n.vy *= -1;
+  });
+
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[i].x - nodes[j].x;
+      const dy = nodes[i].y - nodes[j].y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < maxDist) {
+        ctx.beginPath();
+        ctx.moveTo(nodes[i].x, nodes[i].y);
+        ctx.lineTo(nodes[j].x, nodes[j].y);
+        ctx.strokeStyle = `rgba(99,102,241,${0.25 * (1 - d / maxDist)})`;
+        ctx.lineWidth = 0.7;
+        ctx.stroke();
+      }
+    }
+  }
+
+  nodes.forEach(n => {
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(99,102,241,0.7)';
+    ctx.fill();
+  });
+
+  requestAnimationFrame(drawNetwork);
+}
+
+resize();
+initNodes();
+drawNetwork();
+window.addEventListener('resize', () => { resize(); initNodes(); });
+
+// ── SCROLL ANIMATIONS ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
+
+// ── DASHBOARD TABS ──
+function switchTab(name, btn) {
+  document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.dash-screen').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+// ── SIGNUP ──
+let signupCount = 247;
+
+function handleSignup(e) {
+  e.preventDefault();
+  const emailInput = e.target.querySelector('input[type="email"]');
+  const email = emailInput.value.trim();
+  if (!email) return;
+
+  // Simulate submission
+  emailInput.value = '';
+  signupCount++;
+  const countEl = document.getElementById('count-display');
+  if (countEl) countEl.textContent = signupCount;
+
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 4000);
+}
+
+// ── ACCORDION ──
+function toggleAccordion(toggle) {
+  toggle.closest('.wf-accordion').classList.toggle('open');
+}
+
+// ── RUNNING STEP ANIMATION ──
+let stepInterval = setInterval(() => {
+  document.querySelectorAll('.wf-step-header').forEach(s => {
+    const running = s.querySelector('.tag');
+    if (running && running.textContent.trim() === 'running') {
+      s.style.opacity = s.style.opacity === '0.6' ? '1' : '0.6';
+    }
+  });
+}, 800);
+
+// ── COUNTER ANIMATION ──
+function animateCounter(el, target, prefix = '', suffix = '') {
+  let current = 0;
+  const step = target / 40;
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = prefix + Math.round(current) + suffix;
+    if (current >= target) clearInterval(timer);
+  }, 30);
+}
+
+const statsObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      statsObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+</script>
+</body>
+</html>

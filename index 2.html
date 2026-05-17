@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZybOS — Coming Soon</title>
+  <meta name="description" content="ZybOS is the AI Agent Operating System. Orchestrate, plan, and run hundreds of AI agents securely — with built-in LLM routing, sandboxed execution, and long-term memory." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0b1629;
+      --bg2:     #0f1e38;
+      --bg3:     #122040;
+      --blue:    #4979FF;
+      --blue2:   #6d9bff;
+      --teal:    #00C2B8;
+      --gold:    #F7B84B;
+      --red:     #ff5c72;
+      --text:    #EDF2FF;
+      --muted:   #6b8ab5;
+      --border:  rgba(73,121,255,0.18);
+      --glass:   rgba(15,30,56,0.65);
+      --r:       14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    #bg-canvas {
+      position: fixed; inset: 0;
+      z-index: 0; pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .orb {
+      position: fixed; border-radius: 50%;
+      filter: blur(110px); pointer-events: none; z-index: 0;
+    }
+    .orb-1 { width: 800px; height: 800px; top: -300px; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, rgba(73,121,255,0.16) 0%, transparent 70%); }
+    .orb-2 { width: 500px; height: 500px; bottom: 20%; left: -150px; background: radial-gradient(circle, rgba(0,194,184,0.1) 0%, transparent 70%); }
+    .orb-3 { width: 450px; height: 450px; bottom: 0; right: -100px; background: radial-gradient(circle, rgba(73,121,255,0.09) 0%, transparent 70%); }
+
+    /* ── SHARED ── */
+    .z1 { position: relative; z-index: 1; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 5%; }
+
+    .section-label {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--teal); margin-bottom: 0.6rem;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      font-weight: 800; line-height: 1.15; letter-spacing: -0.02em;
+      margin-bottom: 0.9rem;
+    }
+    .section-sub {
+      font-size: 0.97rem; color: var(--muted); line-height: 1.75;
+      max-width: 560px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.85rem 5%;
+      backdrop-filter: blur(20px) saturate(160%);
+      background: rgba(11,22,41,0.82);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 0.65rem;
+      text-decoration: none;
+    }
+    .nav-logo-svg { width: 34px; height: 34px; filter: drop-shadow(0 0 10px rgba(73,121,255,0.4)); }
+    .nav-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800; font-size: 1.2rem; color: #fff; letter-spacing: -0.02em;
+    }
+    .nav-badge {
+      padding: 0.28rem 0.75rem;
+      background: rgba(73,121,255,0.12);
+      border: 1px solid rgba(73,121,255,0.3);
+      border-radius: 100px;
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue2);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 8rem 5% 5rem;
+      position: relative;
+    }
+    .hero-inner { max-width: 780px; }
+
+    .hero-logo-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 1rem;
+      margin-bottom: 2.2rem;
+      animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .hero-logo-svg {
+      width: 100px; height: 100px;
+      filter: drop-shadow(0 0 36px rgba(73,121,255,0.6))
+              drop-shadow(0 0 10px rgba(73,121,255,0.3));
+      animation: float 5.5s ease-in-out infinite;
+    }
+    .hero-wordmark {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.025em; color: #fff;
+    }
+    .hero-sub-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--blue2); margin-top: -0.4rem;
+    }
+
+    .hero-cs-pill {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.38rem 1rem;
+      background: rgba(73,121,255,0.09); border: 1px solid rgba(73,121,255,0.3);
+      border-radius: 100px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--blue2);
+      margin-bottom: 1.8rem;
+      animation: fadeUp 0.9s 0.1s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .pulse-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--teal); box-shadow: 0 0 8px var(--teal);
+      animation: blink 2s ease-in-out infinite; flex-shrink: 0;
+    }
+
+    .hero-headline {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 800; line-height: 1.08; letter-spacing: -0.03em;
+      margin-bottom: 1.4rem;
+      animation: fadeUp 0.9s 0.18s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .hl-grad {
+      background: linear-gradient(135deg, var(--teal) 0%, var(--blue) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hl-dim { color: rgba(237,242,255,0.48); }
+
+    .hero-desc {
+      font-size: clamp(1rem, 1.8vw, 1.15rem);
+      color: var(--muted); line-height: 1.8; max-width: 640px;
+      margin: 0 auto 2.8rem;
+      animation: fadeUp 0.9s 0.26s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    /* ── FORM ── */
+    .form-block {
+      width: 100%; max-width: 500px; margin: 0 auto 1.5rem;
+      animation: fadeUp 0.9s 0.34s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .ea-form {
+      display: flex;
+      border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+      background: rgba(15,30,56,0.85); backdrop-filter: blur(16px);
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .ea-form:focus-within {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(73,121,255,0.14), 0 8px 40px rgba(73,121,255,0.18);
+    }
+    .ea-input {
+      flex: 1; background: transparent; border: none; outline: none;
+      padding: 1rem 1.2rem;
+      color: var(--text); font-family: inherit; font-size: 0.95rem;
+    }
+    .ea-input::placeholder { color: var(--muted); }
+    .ea-btn {
+      padding: 1rem 1.5rem;
+      background: linear-gradient(135deg, var(--blue), var(--blue2));
+      border: none; color: #fff;
+      font-family: inherit; font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap; transition: all 0.2s;
+    }
+    .ea-btn:hover { background: linear-gradient(135deg, #5a8bff, #8cb0ff); }
+    .ea-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    .ea-success {
+      display: none; flex-direction: column; align-items: center; gap: 0.55rem;
+      padding: 1.4rem 2rem;
+      background: rgba(0,194,184,0.07);
+      border: 1px solid rgba(0,194,184,0.28);
+      border-radius: 14px;
+    }
+    .ea-success.show { display: flex; animation: fadeUp 0.4s ease both; }
+    .sc-icon {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: rgba(0,194,184,0.12); border: 2px solid var(--teal);
+      display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+    }
+    .sc-title { font-weight: 700; font-size: 0.98rem; color: var(--teal); }
+    .sc-body { font-size: 0.83rem; color: var(--muted); }
+
+    .social-proof {
+      display: flex; align-items: center; justify-content: center; gap: 0.85rem;
+      font-size: 0.82rem; color: var(--muted);
+      animation: fadeUp 0.9s 0.4s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .avatars { display: flex; }
+    .av {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; font-weight: 700; margin-left: -7px;
+    }
+    .av:first-child { margin-left: 0; }
+
+    /* ── WHAT IS ZYBOS ── */
+    .what-section {
+      padding: 6rem 5%;
+      background: linear-gradient(180deg, transparent 0%, rgba(15,30,56,0.35) 50%, transparent 100%);
+    }
+    .what-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 3.5rem; align-items: center;
+      max-width: 1080px; margin: 0 auto;
+    }
+    .what-text {}
+    .what-text p {
+      color: var(--muted); line-height: 1.8; font-size: 0.97rem;
+      margin-bottom: 1rem;
+    }
+    .what-text p strong { color: var(--text); font-weight: 600; }
+
+    .stat-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1rem; margin-top: 2rem;
+    }
+    .stat-box {
+      background: var(--glass); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.1rem 1rem; text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    .stat-box .sn {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.7rem; font-weight: 800;
+      background: linear-gradient(135deg, #fff 30%, var(--blue2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .stat-box .sl { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; font-weight: 500; }
+
+    /* stack visual */
+    .stack-visual {
+      display: flex; flex-direction: column; gap: 0.6rem;
+    }
+    .sv-layer {
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.85rem 1.1rem;
+      background: var(--glass); border: 1px solid var(--border);
+      border-radius: 11px; backdrop-filter: blur(10px);
+      transition: all 0.25s; cursor: default;
+    }
+    .sv-layer:hover { border-color: var(--blue); transform: translateX(5px); background: rgba(73,121,255,0.07); }
+    .sv-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .sv-name { font-weight: 600; font-size: 0.88rem; }
+    .sv-desc { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+    .sv-tag {
+      margin-left: auto; flex-shrink: 0;
+      padding: 0.18rem 0.6rem;
+      border-radius: 100px; font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    /* ── FEATURES ── */
+    .features-section { padding: 5rem 5%; }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; border: 1px solid var(--border); border-radius: 18px;
+      overflow: hidden; background: var(--border);
+      max-width: 1080px; margin: 0 auto;
+    }
+    .feat-card {
+      background: var(--glass); backdrop-filter: blur(12px);
+      padding: 1.8rem 1.6rem; transition: background 0.25s; cursor: default;
+      position: relative; overflow: hidden;
+    }
+    .feat-card::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(73,121,255,0.04), transparent);
+      opacity: 0; transition: opacity 0.25s;
+    }
+    .feat-card:hover { background: rgba(73,121,255,0.05); }
+    .feat-card:hover::after { opacity: 1; }
+    .feat-icon {
+      width: 42px; height: 42px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; margin-bottom: 1rem;
+    }
+    .fi-b { background: rgba(73,121,255,0.12); box-shadow: 0 0 18px rgba(73,121,255,0.18); }
+    .fi-t { background: rgba(0,194,184,0.12); box-shadow: 0 0 18px rgba(0,194,184,0.18); }
+    .fi-g { background: rgba(247,184,75,0.12); box-shadow: 0 0 18px rgba(247,184,75,0.18); }
+    .fi-r { background: rgba(255,92,114,0.12); box-shadow: 0 0 18px rgba(255,92,114,0.18); }
+    .feat-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; }
+    .feat-desc { font-size: 0.845rem; color: var(--muted); line-height: 1.7; }
+
+    /* ── SECURITY ── */
+    .security-section { padding: 5rem 5%; }
+    .security-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start;
+    }
+    .sec-layers { display: flex; flex-direction: column; gap: 0.55rem; margin-top: 2rem; }
+    .sec-layer {
+      display: flex; align-items: flex-start; gap: 0.9rem;
+      padding: 1rem 1.1rem;
+      background: var(--glass); border: 1px solid var(--border);
+      border-radius: 11px; backdrop-filter: blur(10px);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .sec-layer:hover { border-color: rgba(255,92,114,0.4); background: rgba(255,92,114,0.04); }
+    .sec-num {
+      width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+      background: rgba(255,92,114,0.12); border: 1px solid rgba(255,92,114,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 800; color: var(--red); margin-top: 0.05rem;
+    }
+    .sec-content {}
+    .sec-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.2rem; }
+    .sec-detail { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
+
+    .sandbox-panel {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .sandbox-header {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.9rem 1.2rem;
+      background: rgba(255,92,114,0.07);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.78rem; font-weight: 700; color: var(--red);
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .sandbox-header span { margin-left: auto; color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.72rem; }
+    pre.sandbox-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem; line-height: 1.85;
+      padding: 1.4rem 1.3rem;
+      color: #8ab4d8; overflow-x: auto;
+    }
+    .sc-kw   { color: var(--blue2); }
+    .sc-str  { color: var(--teal); }
+    .sc-cm   { color: #3d5e78; }
+    .sc-ok   { color: #5de0a0; }
+    .sc-warn { color: var(--gold); }
+    .sc-err  { color: var(--red); }
+
+    /* ── AGENTS STRIP ── */
+    .agents-section { padding: 4.5rem 5%; }
+    .pills-wrap {
+      display: flex; flex-wrap: wrap; gap: 0.6rem;
+      max-width: 1080px; margin: 1.8rem auto 0;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.38rem 0.9rem;
+      background: rgba(15,30,56,0.7); border: 1px solid var(--border);
+      border-radius: 100px; backdrop-filter: blur(8px);
+      font-size: 0.78rem; font-weight: 500; color: var(--muted);
+      transition: all 0.2s;
+    }
+    .pill:hover { border-color: var(--teal); color: var(--text); }
+    .pd { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── EARLY ACCESS CTA ── */
+    .cta-section {
+      padding: 6rem 5%;
+      text-align: center;
+      background: linear-gradient(180deg, transparent 0%, rgba(73,121,255,0.05) 50%, transparent 100%);
+    }
+    .cta-inner { max-width: 600px; margin: 0 auto; }
+    .cta-badge {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.35rem 0.9rem;
+      background: rgba(247,184,75,0.1); border: 1px solid rgba(247,184,75,0.3);
+      border-radius: 100px;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 1.5rem;
+    }
+    .cta-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800; line-height: 1.1; letter-spacing: -0.025em;
+      margin-bottom: 1.1rem;
+    }
+    .cta-sub { font-size: 1rem; color: var(--muted); line-height: 1.75; margin-bottom: 2.5rem; }
+
+    .perks {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 1.2rem;
+      margin-top: 2.2rem;
+    }
+    .perk {
+      display: flex; align-items: center; gap: 0.45rem;
+      font-size: 0.83rem; color: var(--muted);
+    }
+    .perk-icon { font-size: 0.95rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      padding: 1.8rem 5%;
+      border-top: 1px solid rgba(73,121,255,0.08);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-brand {
+      display: flex; align-items: center; gap: 0.55rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700; font-size: 1rem; color: var(--text);
+    }
+    .footer-links { display: flex; gap: 1.5rem; list-style: none; }
+    .footer-links a { font-size: 0.82rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-11px); }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.25; }
+    }
+
+    .reveal {
+      opacity: 0; transform: translateY(22px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      .what-grid   { grid-template-columns: 1fr; gap: 2.5rem; }
+      .security-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+      .features-grid  { grid-template-columns: 1fr 1fr; }
+      footer { flex-direction: column; text-align: center; }
+    }
+    @media (max-width: 580px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .ea-form { flex-direction: column; }
+      .ea-btn  { border-radius: 0 0 12px 12px; }
+      .stat-row { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav class="z1">
+  <a class="nav-brand" href="#">
+    <img class="nav-logo-svg" src="ZybOS.svg" alt="ZybOS" />
+    <span class="nav-name">ZybOS</span>
+  </a>
+  <div class="nav-badge">Coming Soon</div>
+  <a href="#early-access" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.55rem 1.2rem;background:linear-gradient(135deg,var(--blue),var(--blue2));border-radius:9px;font-size:0.85rem;font-weight:700;color:#fff;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.boxShadow='0 0 24px rgba(73,121,255,0.5)'" onmouseout="this.style.boxShadow='none'">
+    Get Early Access
+  </a>
+</nav>
+
+<!-- HERO -->
+<section class="hero z1">
+  <div class="hero-inner">
+    <div class="hero-logo-wrap">
+      <img class="hero-logo-svg" src="ZybOS.svg" alt="ZybOS" />
+      <div class="hero-wordmark">ZybOS</div>
+      <div class="hero-sub-label">AI Agent Operating System</div>
+    </div>
+
+    <div class="hero-cs-pill">
+      <span class="pulse-dot"></span>
+      Private Beta — Coming Soon
+    </div>
+
+    <h1 class="hero-headline">
+      One platform to<br>
+      <span class="hl-grad">orchestrate, secure,</span><br>
+      <span class="hl-dim">and run your agents</span>
+    </h1>
+
+    <p class="hero-desc">
+      ZybOS is the unified agent operating system — a protocol-first control plane that lets you
+      deploy, connect, and supervise hundreds of specialized AI agents.
+      Every agent runs through a <strong style="color:var(--text)">centralized LLM proxy</strong>,
+      stores context in <strong style="color:var(--text)">persistent Cortex memory</strong>,
+      executes tasks inside a <strong style="color:var(--text)">9-layer sandboxed runtime</strong>,
+      and streams real-time progress to a live dashboard. All from a single WebSocket hub.
+    </p>
+
+    <div class="form-block">
+      <form class="ea-form" id="hero-form" onsubmit="handleSubmit(event,'hero-form','hero-success','hero-btn')">
+        <input class="ea-input" id="hero-email" type="email" placeholder="Enter your email for early access" required autocomplete="email" />
+        <button class="ea-btn" type="submit" id="hero-btn">Get Early Access →</button>
+      </form>
+      <div class="ea-success" id="hero-success">
+        <div class="sc-icon">✓</div>
+        <div class="sc-title">You're on the list!</div>
+        <div class="sc-body">We'll be in touch within 48 hours with your access details.</div>
+      </div>
+    </div>
+
+    <div class="social-proof">
+      <div class="avatars">
+        <div class="av" style="background:rgba(73,121,255,0.25);color:#9bb8ff;">A</div>
+        <div class="av" style="background:rgba(0,194,184,0.25);color:#5de0d8;">M</div>
+        <div class="av" style="background:rgba(247,184,75,0.25);color:#fbd07a;">J</div>
+        <div class="av" style="background:rgba(73,121,255,0.18);color:#7ea8ff;">R</div>
+        <div class="av" style="background:rgba(73,121,255,0.12);color:#5e85e0;">+</div>
+      </div>
+      <span>Join <strong style="color:var(--text)">400+ engineers</strong> already on the waitlist</span>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT IS ZYBOS -->
+<section class="what-section z1">
+  <div class="what-grid">
+    <div class="what-text reveal">
+      <div class="section-label">What is ZybOS</div>
+      <h2 class="section-title">An OS layer purpose-built<br>for the agent era</h2>
+      <p>
+        Modern AI workflows are not single models making single calls. They are <strong>networks of specialized agents</strong> — each with distinct capabilities, context windows, tool access, and failure modes — all running concurrently and passing results to one another.
+      </p>
+      <p>
+        ZybOS provides the infrastructure glue that makes this tractable: a <strong>typed message bus</strong>, a <strong>capability registry</strong>, a <strong>centralized LLM gateway</strong> with cost controls, a <strong>long-term Cortex memory store</strong> per agent, a <strong>workflow planner and executor</strong> with step chaining, and a <strong>fully sandboxed code runtime</strong> — all observable in real time through a live dashboard.
+      </p>
+      <p>
+        You bring the business logic. ZybOS handles the plumbing, the security, and the observability.
+      </p>
+      <div class="stat-row">
+        <div class="stat-box"><div class="sn">25+</div><div class="sl">Built-in agents</div></div>
+        <div class="stat-box"><div class="sn">9</div><div class="sl">Security layers</div></div>
+        <div class="stat-box"><div class="sn">3</div><div class="sl">LLM providers</div></div>
+      </div>
+    </div>
+
+    <div class="stack-visual reveal" style="transition-delay:0.12s">
+      <div class="sv-layer">
+        <span class="sv-dot" style="background:var(--gold)"></span>
+        <div>
+          <div class="sv-name">Agents Layer</div>
+          <div class="sv-desc">25+ specialized workers: browser, code, docs, Slack, Gmail, filesystem…</div>
+        </div>
+        <div class="sv-tag" style="background:rgba(247,184,75,0.1);color:var(--gold);border:1px solid rgba(247,184,75,0.25);">SDK</div>
+      </div>
+      <div class="sv-layer">
+        <span class="sv-dot" style="background:var(--teal)"></span>
+        <div>
+          <div class="sv-name">WebSocket Transport</div>
+          <div class="sv-desc">Persistent bi-directional connections — 15 s heartbeat, 30 s timeout</div>
+        </div>
+        <div class="sv-tag" style="background:rgba(0,194,184,0.1);color:var(--teal);border:1px solid rgba(0,194,184,0.25);">WS</div>
+      </div>
+      <div class="sv-layer">
+        <span class="sv-dot" style="background:var(--blue)"></span>
+        <div>
+          <div class="sv-name">Message Broker</div>
+          <div class="sv-desc">Routes task_request, workflow_event, settings_push, memory_write</div>
+        </div>
+        <div class="sv-tag" style="background:rgba(73,121,255,0.1);color:var(--blue2);border:1px solid rgba(73,121,255,0.25);">Core</div>
+      </div>
+      <div class="sv-layer">
+        <span class="sv-dot" style="background:var(--blue)"></span>
+        <div>
+          <div class="sv-name">LLM Proxy + Guardrails</div>
+          <div class="sv-desc">Anthropic / OpenAI / Gemini — rate limits, token budgets, blocked phrases</div>
+        </div>
+        <div class="sv-tag" style="background:rgba(73,121,255,0.1);color:var(--blue2);border:1px solid rgba(73,121,255,0.25);">Gateway</div>
+      </div>
+      <div class="sv-layer">
+        <span class="sv-dot" style="background:var(--teal)"></span>
+        <div>
+          <div class="sv-name">Cortex Memory</div>
+          <div class="sv-desc">Per-agent Markdown + SQLite FTS5 with LLM auto-compression</div>
+        </div>
+        <div class="sv-tag" style="background:rgba(0,194,184,0.1);color:var(--teal);border:1px solid rgba(0,194,184,0.25);">Memory</div>
+      </div>
+      <div class="sv-layer">
+        <span class="sv-dot" style="background:var(--red)"></span>
+        <div>
+          <div class="sv-name">Sandboxed Execution</div>
+          <div class="sv-desc">9-layer security model — subprocess isolation, AST analysis, POSIX limits</div>
+        </div>
+        <div class="sv-tag" style="background:rgba(255,92,114,0.1);color:var(--red);border:1px solid rgba(255,92,114,0.25);">Secure</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section z1">
+  <div class="container">
+    <div class="section-header reveal" style="margin-bottom:2.5rem;">
+      <div class="section-label">Platform Features</div>
+      <h2 class="section-title">Everything production agents need,<br>shipped as one system</h2>
+    </div>
+    <div class="features-grid reveal" style="transition-delay:0.1s">
+      <div class="feat-card">
+        <div class="feat-icon fi-b">🔀</div>
+        <h3 class="feat-title">Agent Orchestrator</h3>
+        <p class="feat-desc">FastAPI WebSocket hub for agent registration, capability discovery, heartbeat monitoring, and intelligent message routing. Agents register once and persist their UUID across reconnects — no manual re-wiring.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon fi-t">⚡</div>
+        <h3 class="feat-title">LLM Proxy Gateway</h3>
+        <p class="feat-desc">All agent LLM traffic flows through a single gateway. Supports Anthropic, OpenAI, and Gemini. Enforces rate limits, daily token budgets, blocked-phrase guardrails, and per-agent cost analytics — no runaway spend.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon fi-g">🧠</div>
+        <h3 class="feat-title">Cortex Long-term Memory</h3>
+        <p class="feat-desc">Every agent gets a persistent Markdown memory store indexed by SQLite FTS5. Facts, preferences, patterns, and instructions survive restarts and are retrievable by full-text search. Auto-compressed by LLM when entries grow.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon fi-b">📋</div>
+        <h3 class="feat-title">Workflow Planner</h3>
+        <p class="feat-desc">Describe a goal in natural language. The planner fetches live capability schemas from all connected agents, calls the LLM, generates a typed WorkflowPlan, and hands it directly to the executor — zero manual step wiring.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon fi-t">▶️</div>
+        <h3 class="feat-title">Workflow Executor</h3>
+        <p class="feat-desc">Runs plans step-by-step with SQLite persistence and <code style="font-family:monospace;font-size:0.8rem;color:var(--teal)">{{steps[N].output.field}}</code> template chaining so each step's output flows into the next. Live SSE progress streaming. Manual cancel at any point.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon fi-g">📊</div>
+        <h3 class="feat-title">Real-time Dashboard</h3>
+        <p class="feat-desc">Full control plane in one view: active agents, workflow trace with per-step status, LLM proxy stats and request inspector, Cortex memory browser, and system-wide settings — all updating live via SSE.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon fi-t">🌐</div>
+        <h3 class="feat-title">Browser Agent</h3>
+        <p class="feat-desc">Playwright-powered web automation agent with a <code style="font-family:monospace;font-size:0.8rem;color:var(--teal)">ProxyProvider</code> so all LLM calls route through the orchestrator gateway. Navigate, extract, and interact with any webpage from a capability request.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon fi-r">🔒</div>
+        <h3 class="feat-title">Sandboxed Code Execution</h3>
+        <p class="feat-desc">Multi-language code runner with a 9-layer security model. Kill switch, language allowlist, AST analysis, subprocess isolation, environment scrubbing, output caps, and POSIX resource limits. Unsafe modules are blocked at the import hook level — not just the OS level.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon fi-b">📄</div>
+        <h3 class="feat-title">Document Agent</h3>
+        <p class="feat-desc">PDF and image text extraction using pdfminer, EasyOCR, and pdf2image — all local, no third-party API. An AI-assisted extraction mode requires explicit per-call user consent before any text leaves the device. Path sandboxing enforced throughout.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section class="security-section z1" id="security">
+  <div class="security-inner">
+    <div class="reveal">
+      <div class="section-label">Security First</div>
+      <h2 class="section-title">Security is a<br>first-class principle,<br>not an afterthought</h2>
+      <p class="section-sub" style="margin-bottom:0;">
+        Every execution path in ZybOS is designed with a threat model in mind. The code execution runtime implements nine discrete, independently-enforced security layers so that a compromised or misbehaving agent cannot escalate privileges, exfiltrate environment secrets, or consume unbounded resources.
+      </p>
+      <div class="sec-layers">
+        <div class="sec-layer">
+          <div class="sec-num">1</div>
+          <div class="sec-content">
+            <div class="sec-name">Kill Switch</div>
+            <div class="sec-detail">System-wide and per-language enable/disable toggle. Pushed live to all agents via <code style="font-family:monospace;color:var(--blue2)">settings_push</code> — no restart required.</div>
+          </div>
+        </div>
+        <div class="sec-layer">
+          <div class="sec-num">2</div>
+          <div class="sec-content">
+            <div class="sec-name">Language Allowlist</div>
+            <div class="sec-detail">Only explicitly permitted languages (e.g. <code style="font-family:monospace;color:var(--teal)">python,javascript</code>) can be executed. Anything outside the list is rejected before parsing.</div>
+          </div>
+        </div>
+        <div class="sec-layer">
+          <div class="sec-num">3</div>
+          <div class="sec-content">
+            <div class="sec-name">AST Static Analysis</div>
+            <div class="sec-detail">Python code is parsed into an AST before execution. Calls to <code style="font-family:monospace;color:var(--teal)">exec</code>, <code style="font-family:monospace;color:var(--teal)">eval</code>, <code style="font-family:monospace;color:var(--teal)">__import__</code>, and dangerous builtins are rejected at compile time.</div>
+          </div>
+        </div>
+        <div class="sec-layer">
+          <div class="sec-num">4</div>
+          <div class="sec-content">
+            <div class="sec-name">Blocked Module List</div>
+            <div class="sec-detail"><code style="font-family:monospace;color:var(--teal)">ctypes</code>, <code style="font-family:monospace;color:var(--teal)">cffi</code>, <code style="font-family:monospace;color:var(--teal)">cython</code> are permanently blocked — never overridable. An import hook wrapper is prepended to all submitted code before the subprocess runs.</div>
+          </div>
+        </div>
+        <div class="sec-layer">
+          <div class="sec-num">5</div>
+          <div class="sec-content">
+            <div class="sec-name">Subprocess Isolation</div>
+            <div class="sec-detail">Code runs in a child process with a scrubbed environment — all API keys and credential env vars stripped before the child starts, regardless of parent process environment.</div>
+          </div>
+        </div>
+        <div class="sec-layer">
+          <div class="sec-num">6</div>
+          <div class="sec-content">
+            <div class="sec-name">Network Access Control</div>
+            <div class="sec-detail">When <code style="font-family:monospace;color:var(--teal)">code_exec_allow_network=false</code>, socket, requests, httpx, urllib, and related modules are blocked at the import hook level — not just firewalled.</div>
+          </div>
+        </div>
+        <div class="sec-layer">
+          <div class="sec-num">7</div>
+          <div class="sec-content">
+            <div class="sec-name">Execution Timeout</div>
+            <div class="sec-detail">Configurable timeout (1–300 s). The child process is sent SIGKILL on expiry — not just a polite signal — so infinite loops cannot survive.</div>
+          </div>
+        </div>
+        <div class="sec-layer">
+          <div class="sec-num">8</div>
+          <div class="sec-content">
+            <div class="sec-name">Output Cap</div>
+            <div class="sec-detail">stdout + stderr are truncated at a configurable kilobyte limit to prevent log flooding and memory exhaustion from runaway print loops.</div>
+          </div>
+        </div>
+        <div class="sec-layer">
+          <div class="sec-num">9</div>
+          <div class="sec-content">
+            <div class="sec-name">POSIX Resource Limits</div>
+            <div class="sec-detail"><code style="font-family:monospace;color:var(--teal)">RLIMIT_AS</code> caps virtual memory and <code style="font-family:monospace;color:var(--teal)">RLIMIT_CPU</code> caps CPU seconds via <code style="font-family:monospace;color:var(--teal)">preexec_fn</code> on Linux and macOS. Applied at the OS kernel level before code starts running.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal" style="transition-delay:0.15s">
+      <div class="sandbox-panel">
+        <div class="sandbox-header">
+          🛡️ Sandboxed Execution Runtime
+          <span>Python · JS · Shell · more</span>
+        </div>
+        <pre class="sandbox-code"><span class="sc-cm"># Agent submits code via capability request</span>
+{
+  <span class="sc-kw">"capability"</span>: <span class="sc-str">"execute_code"</span>,
+  <span class="sc-kw">"input_data"</span>: {
+    <span class="sc-kw">"language"</span>: <span class="sc-str">"python"</span>,
+    <span class="sc-kw">"code"</span>: <span class="sc-str">"import requests\nprint(requests.get(url))"</span>
+  }
+}
+
+<span class="sc-cm"># Layer 2 — language allowlist check</span>
+<span class="sc-ok">✓</span> python <span class="sc-kw">in</span> allowed_languages
+
+<span class="sc-cm"># Layer 3 — AST analysis</span>
+<span class="sc-ok">✓</span> No exec / eval / __import__ detected
+
+<span class="sc-cm"># Layer 6 — network access (disabled)</span>
+<span class="sc-err">✗</span> [SECURITY] <span class="sc-str">'requests'</span> blocked: network disabled
+  → returned to agent: <span class="sc-err">"[SECURITY] import blocked"</span>
+
+<span class="sc-cm"># If network allowed — subprocess runs with:</span>
+<span class="sc-warn">env</span>   = _sanitized_env()   <span class="sc-cm"># no API keys</span>
+<span class="sc-warn">limit</span> = RLIMIT_AS(512MB) + RLIMIT_CPU(30s)
+<span class="sc-warn">cap</span>   = stdout_max_kb(256)
+
+<span class="sc-cm"># Result streamed back to orchestrator</span>
+<span class="sc-ok">✓</span> exit_code=0  runtime=0.34s  tokens=0</pre>
+      </div>
+
+      <div style="margin-top:1.4rem;padding:1.2rem 1.3rem;background:var(--glass);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(10px);">
+        <div style="font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:0.85rem;">Also protected by design</div>
+        <div style="display:flex;flex-direction:column;gap:0.55rem;">
+          <div style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.82rem;color:var(--muted);">
+            <span style="color:var(--teal);font-weight:700;flex-shrink:0;margin-top:0.05rem;">✓</span>
+            <span><strong style="color:var(--text);">Path traversal prevention</strong> — all filesystem operations resolve paths with <code style="font-family:monospace;font-size:0.78rem;color:var(--teal)">Path.resolve()</code> + <code style="font-family:monospace;font-size:0.78rem;color:var(--teal)">relative_to(root)</code> before any I/O.</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.82rem;color:var(--muted);">
+            <span style="color:var(--teal);font-weight:700;flex-shrink:0;margin-top:0.05rem;">✓</span>
+            <span><strong style="color:var(--text);">Explicit AI consent gate</strong> — document AI-extraction mode returns <code style="font-family:monospace;font-size:0.78rem;color:var(--teal)">consent_required: true</code> before any text leaves the device.</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.82rem;color:var(--muted);">
+            <span style="color:var(--teal);font-weight:700;flex-shrink:0;margin-top:0.05rem;">✓</span>
+            <span><strong style="color:var(--text);">Encrypted settings store</strong> — sensitive LLM keys stored under Fernet encryption in the orchestrator, never exposed in agent registration responses.</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.82rem;color:var(--muted);">
+            <span style="color:var(--teal);font-weight:700;flex-shrink:0;margin-top:0.05rem;">✓</span>
+            <span><strong style="color:var(--text);">Agent-ID auth on LLM proxy</strong> — every proxy request requires a valid <code style="font-family:monospace;font-size:0.78rem;color:var(--teal)">X-Agent-Id</code> header; anonymous calls are rejected with HTTP 400.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AGENTS -->
+<section class="agents-section z1">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Built-in Agents</div>
+      <h2 class="section-title">25+ specialized agents,<br>ready to connect</h2>
+      <p class="section-sub">Every agent follows the same typed protocol — register capabilities, receive tasks, return results. Mix, chain, and extend freely.</p>
+    </div>
+    <div class="pills-wrap reveal" style="transition-delay:0.1s">
+      <div class="pill"><span class="pd" style="background:var(--blue)"></span>Task Planner</div>
+      <div class="pill"><span class="pd" style="background:var(--blue)"></span>Task Executor</div>
+      <div class="pill"><span class="pd" style="background:var(--teal)"></span>Browser Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--teal)"></span>Slack Connector</div>
+      <div class="pill"><span class="pd" style="background:var(--gold)"></span>Gmail Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--gold)"></span>Google Docs</div>
+      <div class="pill"><span class="pd" style="background:var(--red)"></span>Code Executor</div>
+      <div class="pill"><span class="pd" style="background:var(--blue)"></span>Filesystem Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--teal)"></span>Document Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--gold)"></span>Research Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--blue)"></span>Summarize Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--teal)"></span>Telegram Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--gold)"></span>WhatsApp Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--blue)"></span>Desktop Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--teal)"></span>Avatar Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--gold)"></span>Skill Loader</div>
+      <div class="pill"><span class="pd" style="background:var(--red)"></span>Trading Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--blue)"></span>MCP Registry</div>
+      <div class="pill"><span class="pd" style="background:var(--teal)"></span>Chrome Extension</div>
+      <div class="pill"><span class="pd" style="background:var(--gold)"></span>Self-Heal Agent</div>
+      <div class="pill"><span class="pd" style="background:var(--blue)"></span>Serper Search</div>
+      <div class="pill"><span class="pd" style="background:var(--teal)"></span>Workflow Validator</div>
+      <div class="pill"><span class="pd" style="background:var(--gold)"></span>Task Scheduler</div>
+      <div class="pill"><span class="pd" style="background:var(--red)"></span>Interactive Tester</div>
+      <div class="pill"><span class="pd" style="background:var(--blue)"></span>+ Build your own</div>
+    </div>
+  </div>
+</section>
+
+<!-- EARLY ACCESS CTA -->
+<section class="cta-section z1" id="early-access">
+  <div class="cta-inner reveal">
+    <div class="cta-badge">🔒 Limited Early Access</div>
+    <h2 class="cta-title">
+      Be among the first<br>
+      <span class="hl-grad">to run ZybOS</span>
+    </h2>
+    <p class="cta-sub">
+      Join 400+ engineers and founders on the waitlist. Early access members lock in founding-tier pricing, get a private Slack channel with the core team, and shape the roadmap directly.
+    </p>
+
+    <div class="form-block" style="max-width:480px">
+      <form class="ea-form" id="cta-form" onsubmit="handleSubmit(event,'cta-form','cta-success','cta-btn')">
+        <input class="ea-input" id="cta-email" type="email" placeholder="you@company.com" required autocomplete="email" />
+        <button class="ea-btn" type="submit" id="cta-btn">Request Access →</button>
+      </form>
+      <div class="ea-success" id="cta-success">
+        <div class="sc-icon">✓</div>
+        <div class="sc-title">You're on the list!</div>
+        <div class="sc-body">We'll send your access details within 48 hours.</div>
+      </div>
+    </div>
+
+    <div class="perks">
+      <div class="perk"><span class="perk-icon">🚀</span> Founding-tier pricing locked in</div>
+      <div class="perk"><span class="perk-icon">💬</span> Private Slack with the team</div>
+      <div class="perk"><span class="perk-icon">🗺️</span> Roadmap voting rights</div>
+      <div class="perk"><span class="perk-icon">🛡️</span> No credit card required</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="z1">
+  <div class="footer-brand">
+    <img width="26" height="26" src="ZybOS.svg" alt="ZybOS" />
+    ZybOS
+  </div>
+  <ul class="footer-links">
+    <li><a href="#security">Security</a></li>
+    <li><a href="#early-access">Early Access</a></li>
+    <li><a href="mailto:hello@zyb-os.ai">Contact</a></li>
+  </ul>
+  <div class="footer-copy">© 2026 ZybOS · Built with 🤖</div>
+</footer>
+
+<script>
+// ── CANVAS PARTICLES ──
+(function () {
+  const cv = document.getElementById('bg-canvas');
+  const cx = cv.getContext('2d');
+  let W, H, pts = [];
+  const N = 60, D = 130;
+  const C = ['#4979FF','#00C2B8','#6d9bff'];
+  function sz() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+  function init() {
+    pts = Array.from({length:N}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      vx:(Math.random()-.5)*.32, vy:(Math.random()-.5)*.32,
+      r: Math.random()*1.8+.5,
+      c: C[0|Math.random()*C.length],
+      a: Math.random()*.5+.15
+    }));
+  }
+  function draw() {
+    cx.clearRect(0,0,W,H);
+    for (let i=0;i<N;i++) {
+      const p=pts[i]; p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W) p.vx*=-1;
+      if(p.y<0||p.y>H) p.vy*=-1;
+      for(let j=i+1;j<N;j++){
+        const q=pts[j], dx=p.x-q.x, dy=p.y-q.y, d=Math.hypot(dx,dy);
+        if(d<D){cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(q.x,q.y);cx.strokeStyle=`rgba(73,121,255,${(1-d/D)*.13})`;cx.lineWidth=.6;cx.stroke();}
+      }
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      cx.fillStyle=p.c;cx.globalAlpha=p.a;cx.fill();cx.globalAlpha=1;
+    }
+    requestAnimationFrame(draw);
+  }
+  sz();init();draw();
+  addEventListener('resize',()=>{sz();init();});
+})();
+
+// ── SCROLL REVEAL ──
+const io = new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// ── FORM HANDLER ──
+function handleSubmit(e, formId, successId, btnId) {
+  e.preventDefault();
+  const btn = document.getElementById(btnId);
+  btn.textContent = 'Joining…'; btn.disabled = true;
+  setTimeout(() => {
+    const email = document.getElementById(formId === 'hero-form' ? 'hero-email' : 'cta-email').value;
+    document.getElementById(formId).style.display = 'none';
+    document.getElementById(successId).classList.add('show');
+    try { localStorage.setItem('zybos_ea', email); } catch(_) {}
+    // sync both forms
+    ['hero-form','cta-form'].forEach(id => {
+      if (id !== formId) document.getElementById(id).style.display = 'none';
+    });
+    ['hero-success','cta-success'].forEach(id => {
+      document.getElementById(id).classList.add('show');
+    });
+  }, 800);
+}
+
+// ── RESTORE STATE ──
+try {
+  if (localStorage.getItem('zybos_ea')) {
+    ['hero-form','cta-form'].forEach(id => document.getElementById(id).style.display='none');
+    ['hero-success','cta-success'].forEach(id => document.getElementById(id).classList.add('show'));
+  }
+} catch(_) {}
+</script>
+</body>
+</html>
